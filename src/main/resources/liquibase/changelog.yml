@@ -1,0 +1,4 @@
+databaseChangeLog:
+  - include:
+      file: changesets/1-initial-schema.sql
+      relativeToChangelogFile: true
