@@ -1,7 +1,10 @@
 package elias.fakerMaker.dto
 
-class NameDto(options: List<Unit>?) : Maker<Unit>(
-    name = "name",
+import elias.fakerMaker.enums.NameEnums
+import elias.fakerMaker.generator_utils.RandomEnum
+
+class NameDto() : Maker<Any>(
+    nickName = "",
     isNullable = false,
-    options
+    options = listOf(RandomEnum.randomEnum<NameEnums>().description)
 )

@@ -1,10 +1,11 @@
 package elias.fakerMaker.dto
 
-import elias.fakerMaker.FakerLibraryEnums
+import elias.fakerMaker.enums.FakerLibraryEnums
+import kotlinx.serialization.Serializable
 
-
-data class SchemaRequestDto(
-    val fakers: List<FakerLibraryEnums>,
-    val makers: List<Maker<*>>,
-    val sessionID: String
+@Serializable
+data class SchemaRequestDto<Any>(
+    var fakers: List<FakerLibraryEnums> = emptyList(),
+    var makers: List<Maker<Any>> = emptyList(),
+    var sessionID: String = ""
 )
