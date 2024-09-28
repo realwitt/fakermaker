@@ -1,10 +1,12 @@
 package elias.fakerMaker.dto
 
-import elias.fakerMaker.enums.NameEnums
-import elias.fakerMaker.generator_utils.RandomEnum
+import elias.fakerMaker.enums.NameEnum
+import elias.fakerMaker.utils.RandomEnum
+import kotlinx.serialization.Serializable
 
-class NameDto() : Maker<Any>(
+@Serializable
+class NameDto() : Maker<NameEnum>(
     nickName = "",
     isNullable = false,
-    options = listOf(RandomEnum.randomEnum<NameEnums>().description)
+    options = listOf(RandomEnum.randomEnum<NameEnum>())
 )

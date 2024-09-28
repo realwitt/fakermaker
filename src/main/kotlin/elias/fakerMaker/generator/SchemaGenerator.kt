@@ -3,7 +3,7 @@ package elias.fakerMaker.generator
 import elias.fakerMaker.dto.SchemaRequestDto
 import net.datafaker.Faker
 
-class SchemaRequestDtoGenerator {
+class SchemaGenerator {
     val faker: Faker = Faker()
 
     fun generate() : SchemaRequestDto<Any> {

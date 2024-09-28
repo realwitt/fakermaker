@@ -1,15 +1,15 @@
 package elias.fakerMaker.generator
 
+import elias.fakerMaker.dto.DataTableItem
 import elias.fakerMaker.enums.FakerEnum
 import net.datafaker.Faker
 import kotlin.random.Random
 
-class NameDtoGenerator {
-
-
+class NameGenerator {
     private val dataFaker: Faker = Faker()
     private val rand: Random = Random
 
+    // todo: make pr in datafaker to add this
     val kingOfTheHill = listOf(
         "Hank Hill",
         "Peggy Hill",
@@ -73,69 +73,71 @@ class NameDtoGenerator {
         "Randy Strickland"
     )
 
-    fun nameGenerator(fakers: List<FakerEnum>): MutableMap<FakerEnum, String> {
+    private fun nameGenerator(fakers: List<FakerEnum>): MutableMap<FakerEnum, String> {
         val namesMap = emptyMap<FakerEnum, String>().toMutableMap()
         for (faker in fakers) {
             when (faker) {
-                FakerEnum.KING_OF_THE_HILL -> namesMap[FakerEnum.KING_OF_THE_HILL] =
-                    kingOfTheHill[rand.nextInt(kingOfTheHill.size)]
-
+                FakerEnum.BACK_TO_THE_FUTURE -> namesMap[FakerEnum.BACK_TO_THE_FUTURE] = dataFaker.backToTheFuture().character()
                 FakerEnum.BREAKING_BAD -> namesMap[FakerEnum.BREAKING_BAD] = dataFaker.breakingBad().character()
+                FakerEnum.CLASH_OF_CLANS -> namesMap[FakerEnum.CLASH_OF_CLANS] = dataFaker.clashOfClans().troop()
+                FakerEnum.DOCTOR_WHO -> namesMap[FakerEnum.DOCTOR_WHO] = dataFaker.doctorWho().character()
+                FakerEnum.GAME_OF_THRONES -> namesMap[FakerEnum.GAME_OF_THRONES] = dataFaker.gameOfThrones().character()
                 FakerEnum.HARRY_POTTER -> namesMap[FakerEnum.HARRY_POTTER] = dataFaker.harryPotter().character()
+                FakerEnum.KING_OF_THE_HILL -> namesMap[FakerEnum.KING_OF_THE_HILL] = kingOfTheHill[rand.nextInt(kingOfTheHill.size)]
+                FakerEnum.LORD_OF_THE_RINGS -> namesMap[FakerEnum.LORD_OF_THE_RINGS] = dataFaker.lordOfTheRings().character()
+                FakerEnum.SILICON_VALLEY -> namesMap[FakerEnum.SILICON_VALLEY] = dataFaker.siliconValley().character()
+                FakerEnum.BASEBALL -> namesMap[FakerEnum.BASEBALL] = dataFaker.baseball().players()
+                FakerEnum.BASKETBALL -> namesMap[FakerEnum.BASKETBALL] = dataFaker.baseball().players()
                 else -> {}
             }
         }
         return namesMap
     }
 
-    fun getFirstNames(names: MutableMap<FakerEnum, String>): Map<FakerEnum, String> {
-        val firstNames = mutableMapOf<FakerEnum, String>()
-        for ((faker, name) in names) {
-            if (name.startsWith("The") || name.startsWith("Mrs.") || name.startsWith("Mr.")) {
-                try {
-                    firstNames[faker] = name.split(" ")[1]
-                } catch (e: IndexOutOfBoundsException) {
-                    // if for some
-                    continue
-                }
-            } else firstNames[faker] = name.split(" ")[0]
+    private fun getFirstNames(names: MutableMap<FakerEnum, String>): Map<FakerEnum, String> {
+        return names.mapValues { (_, name) ->
+            when {
+                name.startsWith("The ") || name.startsWith("Mrs. ") || name.startsWith("Mr. ") ->
+                    name.split(" ").getOrNull(1) ?: name
+
+                else -> name.split(" ").first()
+            }
         }
-        return firstNames
     }
 
+    private fun getLastNames(names: MutableMap<FakerEnum, String>): Map<FakerEnum, String> {
+        return names.mapValues { (_, name) ->
+            when {
+                name.startsWith("The ") || name.startsWith("Mrs. ") || name.startsWith("Mr. ") ->
+                    name.split(" ").getOrNull(-1) ?: name.split(" ")[0]
 
-
-
-    fun getLastNames(names: MutableMap<FakerEnum, String>): Map<FakerEnum, String> {
-        val lastNames = mutableMapOf<FakerEnum, String>()
-        for ((faker, name) in names) {
-            if ((name.startsWith("The") || name.startsWith("Mrs.") || name.startsWith("Mr.")) || name.split(" ").size > 1) {
-                try {
-                    lastNames[faker] = name.split(" ")[-1]
-                } catch (e: IndexOutOfBoundsException) {
-                    continue
-                }
-            } else lastNames[faker] = name.split(" ")[0]
+                else -> name.split(" ").last()
+            }
         }
-        return lastNames
     }
 
+    fun getRandomFirstName(fakers: List<FakerEnum>): DataTableItem {
+        val names = nameGenerator(fakers)
+        val firstNames = getFirstNames(names)
+        val randomFirstName = firstNames.toList()[rand.nextInt(names.size)]
+        return DataTableItem(
+            randomFirstName.second,
+            randomFirstName.first,
+            names[randomFirstName.first],
+            "https://${randomFirstName.first.toString().replace("_", "").lowercase()}.fandom.com/wiki/${names[randomFirstName.first]?.replace(" ", "_")}"
+        )
+    }
 
-    val names = nameGenerator(listOf(FakerEnum.BREAKING_BAD, FakerEnum.KING_OF_THE_HILL))
-    val firstNames = getFirstNames(names)
-    val lastNames = getLastNames(names)
+    fun getRandomLastName(fakers: List<FakerEnum>): DataTableItem {
+        val names = nameGenerator(fakers)
+        val lastNames = getLastNames(names)
+        val randomLastName = lastNames.toList()[rand.nextInt(names.size)]
+        return DataTableItem(
+            randomLastName.second,
+            randomLastName.first,
+            names[randomLastName.first],
+            "https://${randomLastName.first.toString().replace("_", "").lowercase()}.fandom.com/wiki/${names[randomLastName.first]?.split(" ")?.first()}_${names[randomLastName.first]?.split(" ")?.last()}"
+        )
+    }
 
-
-//    private val nameGenerator: NameGenerator = NameGenerator()
-//    private val rand: Random = Random
-
-//    fun generate() : NameDto {
-//        val name = NameDto()
-//        // todo make the name generator util work better
-//        name.nickName = "random" + rand.nextInt(100)
-//        name.isNullable = rand.nextBoolean()
-//        name.options = listOf(RandomEnum.randomEnum<NameEnums>().description)
-//
-//        return name
-//    }
 }

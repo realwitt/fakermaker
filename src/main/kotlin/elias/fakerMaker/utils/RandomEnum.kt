@@ -1,6 +1,4 @@
-package elias.fakerMaker.generator_utils
-
-import kotlin.reflect.typeOf
+package elias.fakerMaker.utils
 
 class RandomEnum {
     /**

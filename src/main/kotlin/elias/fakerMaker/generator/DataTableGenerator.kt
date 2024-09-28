@@ -1,4 +1,4 @@
 package elias.fakerMaker.generator
 
-class SchemaResponseDtoGenerator {
+class DataTableGenerator {
 }
