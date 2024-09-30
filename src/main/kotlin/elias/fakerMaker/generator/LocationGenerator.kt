@@ -1,5 +1,4 @@
 package elias.fakerMaker.generator
 
-class DataTableGenerator {
-
+class LocationGenerator {
 }
