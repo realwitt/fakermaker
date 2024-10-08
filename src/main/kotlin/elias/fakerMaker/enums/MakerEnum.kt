@@ -16,5 +16,5 @@ enum class MakerEnum(description: String) {
     DATE("date"),
     BOOLEAN("true/false"),
     ID("Id"),
-    CREDIT_CARD("credit card"),
+    CREDIT_CARD_NUMBER("credit card"),
 }

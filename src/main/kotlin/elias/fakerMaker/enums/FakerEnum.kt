@@ -11,6 +11,7 @@ enum class FakerEnum(@JsonValue val description: String) {
     HARRY_POTTER("Harry Potter"),
     KING_OF_THE_HILL("King of the Hill"),
     LORD_OF_THE_RINGS("Lord of the Rings"),
+    RICK_AND_MORTY("Rick and Morty"),
     SILICON_VALLEY("Silicon Valley"),
     BASEBALL("Baseball"),
     BASKETBALL("Basketball"),
