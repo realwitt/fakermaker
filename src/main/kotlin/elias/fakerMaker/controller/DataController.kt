@@ -1,18 +1,28 @@
 package elias.fakerMaker.controller
 
+import elias.fakerMaker.dto.DataTableItem
+import elias.fakerMaker.enums.FakerEnum
+import elias.fakerMaker.enums.MakerEnum
+import elias.fakerMaker.generator.DataService
+import elias.fakerMaker.utils.RandomEnum.Companion.randomEnums
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+
+val dataService = DataService()
+val fakers = randomEnums<FakerEnum>()
+val makers = randomEnums<MakerEnum>()
 
 @RestController
 @RequestMapping("/api/faker")
 class DataController {
 
     @PostMapping("/schema")
-    fun getFakeData(): Any {
-        // make service to return random schema response
-        return ""
+    fun getFakeData(): List<List<DataTableItem>> {
+        // todo: create the schema argument (which will determine the payload of the buildMeAnArmy method)
 
+        // WIP... currently returns a random datatable payload
+        return dataService.buildMeAnArmy(25, fakers, makers)
     }
 
 }

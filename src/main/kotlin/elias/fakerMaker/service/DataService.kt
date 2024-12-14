@@ -4,9 +4,11 @@ import elias.fakerMaker.dto.DataTableItem
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.MakerEnum
 import net.datafaker.Faker
+import org.springframework.stereotype.Service
 import kotlin.random.Random
 
-class DataTableGenerator {
+@Service
+class DataService {
     val rand = Random
     val dataFaker = Faker()
     val nameGenerator = NameGenerator()
