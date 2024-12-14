@@ -1,5 +1,8 @@
 package elias.fakerMaker.generator
 
+import elias.fakerMaker.customFakers.GravityFalls
+import elias.fakerMaker.customFakers.KingOfTheHill
+import elias.fakerMaker.customFakers.Monk
 import elias.fakerMaker.dto.DataTableItem
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.MakerEnum
@@ -11,85 +14,25 @@ class NameGenerator {
     private val rand: Random = Random
 
     // todo: make pr in datafaker to add this
-    val kingOfTheHill = listOf(
-        "Hank Hill",
-        "Peggy Hill",
-        "Bobby Hill",
-        "Cotton Hill",
-        "Didi Hill",
-        "Tilly Garrison",
-        "G.H. Hill",
-        "Michiko",
-        "Junichiro",
-        "Ladybird",
-        "Chuck Garrison",
-        "Gary Kasner",
-        "Luanne Leanne Kleinschmidt Platter",
-        "Hoyt Platter",
-        "Leanne Platter",
-        "Lucky Kleinschmidt",
-        "Buckley",
-        "June Kremzer",
-        "Elvin Mackleston",
-        "Mud Dobber",
-        "Dusty Hill",
-        "Dale Alvin Gribble",
-        "Nancy Hicks-Gribble",
-        "Joseph Gribble",
-        "Bug Gribble",
-        "John Redcorn",
-        "Rusty Shackleford",
-        "Juan Pedro",
-        "Jeff Boomhauer III",
-        "Katherine Hester",
-        "Meemaw",
-        "Patch Boomhauer",
-        "Marlene",
-        "William Fontaine de la Tour Dauterive",
-        "Bill Dauterive",
-        "Marilyn",
-        "Ann Richards",
-        "Cyndi Beauchamp",
-        "Charlene",
-        "Violetta Dauterive",
-        "Gilbert Dauterive",
-        "Girac Dauterive",
-        "Rene Dautrive",
-        "Esme Dauterive",
-        "Alphonse Dauterive",
-        "Wally",
-        "Kohng Koy Souphanousinphone",
-        "Minh Souphanousinphone",
-        "Connie Souphanousinphone",
-        "Tid Pao Souphanousinphone",
-        "Chane Wassanasong",
-        "Ted Wassanasong",
-        "Cindy Wassanasong",
-        "Mr. Tranh",
-        "Mr. Ho",
-        "Laoma Souphanousinphone",
-        "Buck Strickland",
-        "Elizabeth Strickland",
-        "Jody Rayroy Strickland",
-        "Randy Strickland"
-    )
 
     private fun nameGenerator(fakers: List<FakerEnum>): MutableMap<FakerEnum, String> {
         val namesMap = emptyMap<FakerEnum, String>().toMutableMap()
         for (faker in fakers) {
             when (faker) {
                 FakerEnum.BACK_TO_THE_FUTURE -> namesMap[FakerEnum.BACK_TO_THE_FUTURE] = dataFaker.backToTheFuture().character()
+                FakerEnum.BASEBALL -> namesMap[FakerEnum.BASEBALL] = dataFaker.baseball().players()
+                FakerEnum.BASKETBALL -> namesMap[FakerEnum.BASKETBALL] = dataFaker.baseball().players()
                 FakerEnum.BREAKING_BAD -> namesMap[FakerEnum.BREAKING_BAD] = dataFaker.breakingBad().character()
                 FakerEnum.CLASH_OF_CLANS -> namesMap[FakerEnum.CLASH_OF_CLANS] = dataFaker.clashOfClans().troop()
                 FakerEnum.DOCTOR_WHO -> namesMap[FakerEnum.DOCTOR_WHO] = dataFaker.doctorWho().character()
                 FakerEnum.GAME_OF_THRONES -> namesMap[FakerEnum.GAME_OF_THRONES] = dataFaker.gameOfThrones().character()
+                FakerEnum.GRAVITY_FALLS -> namesMap[FakerEnum.GRAVITY_FALLS] = GravityFalls.characters.random()
                 FakerEnum.HARRY_POTTER -> namesMap[FakerEnum.HARRY_POTTER] = dataFaker.harryPotter().character()
-                FakerEnum.KING_OF_THE_HILL -> namesMap[FakerEnum.KING_OF_THE_HILL] = kingOfTheHill.random()
+                FakerEnum.KING_OF_THE_HILL -> namesMap[FakerEnum.KING_OF_THE_HILL] = KingOfTheHill.characters.random()
                 FakerEnum.LORD_OF_THE_RINGS -> namesMap[FakerEnum.LORD_OF_THE_RINGS] = dataFaker.lordOfTheRings().character()
+                FakerEnum.MONK -> namesMap[FakerEnum.MONK] = Monk.characters.random()
                 FakerEnum.RICK_AND_MORTY -> namesMap[FakerEnum.RICK_AND_MORTY] = dataFaker.rickAndMorty().character()
                 FakerEnum.SILICON_VALLEY -> namesMap[FakerEnum.SILICON_VALLEY] = dataFaker.siliconValley().character()
-                FakerEnum.BASEBALL -> namesMap[FakerEnum.BASEBALL] = dataFaker.baseball().players()
-                FakerEnum.BASKETBALL -> namesMap[FakerEnum.BASKETBALL] = dataFaker.baseball().players()
             }
         }
         return namesMap
@@ -179,5 +122,7 @@ class NameGenerator {
             getFandomUrl(randomLastName.first, names[randomLastName.first]!!, false)
         )
     }
+
+
 
 }

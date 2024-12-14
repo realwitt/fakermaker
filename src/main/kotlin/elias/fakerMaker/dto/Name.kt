@@ -5,7 +5,7 @@ import elias.fakerMaker.utils.RandomEnum
 import kotlinx.serialization.Serializable
 
 @Serializable
-class NameDto() : Maker<NameEnum>(
+class Name() : Maker<NameEnum>(
     nickName = "",
     isNullable = false,
     options = listOf(RandomEnum.randomEnum<NameEnum>())

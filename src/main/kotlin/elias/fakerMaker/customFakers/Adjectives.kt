@@ -1,12 +1,8 @@
-package elias.fakerMaker.utils
+package elias.fakerMaker.customFakers
 
-import kotlin.random.Random
+object Adjectives {
 
-
-class RandomAdjective {
-    private val rand: Random = Random
-
-    val adjectives = listOf(
+    val quirky = listOf(
         "Absent",
         "Adamant",
         "Adept",
@@ -504,8 +500,4 @@ class RandomAdjective {
         "Zonked",
         "Zoomy"
     )
-
-    fun getRandomAdjective(): String {
-        return adjectives[rand.nextInt(adjectives.size)]
-    }
 }

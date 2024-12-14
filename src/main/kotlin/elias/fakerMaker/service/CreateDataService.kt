@@ -1,11 +1,11 @@
 package elias.fakerMaker.service
 
-import elias.fakerMaker.dto.SchemaRequestDto
+import elias.fakerMaker.dto.SchemaRequest
 import org.springframework.stereotype.Service
 
 @Service
 class CreateDataService {
-    fun createData(schemaRequestDto: SchemaRequestDto<Any>) {
-        // todo make logic to create
-    }
+//    fun createData(schemaRequest: SchemaRequest<Any>) {
+//        // todo make logic to create
+//    }
 }

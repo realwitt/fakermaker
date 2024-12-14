@@ -1,9 +1,9 @@
 package elias.fakerMaker.generator
 
+import elias.fakerMaker.customFakers.Adjectives
 import elias.fakerMaker.dto.DataTableItem
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.MakerEnum
-import elias.fakerMaker.utils.RandomAdjective
 import net.datafaker.Faker
 import kotlin.random.Random
 
@@ -11,7 +11,6 @@ class EmailGenerator {
     private val dataFaker: Faker = Faker()
     private val rand: Random = Random
     private val nameGenerator: NameGenerator = NameGenerator()
-    private val adjectiveGenerator = RandomAdjective()
 
 // email generator
 // if there are names in the schema, we should use them
@@ -70,14 +69,14 @@ class EmailGenerator {
     private fun generateRandomEmailLocalPart(names: List<DataTableItem>?): String {
         val localPartNames = mutableListOf(
             dataFaker.company().buzzword() + dataFaker.animal().name(),
-            adjectiveGenerator.getRandomAdjective() + dataFaker.animal().name(),
+            Adjectives.quirky.random() + dataFaker.animal().name(),
         )
 
         // note: if multiple names are given, only the first instance of a first and last name will be used
-        if (!names.isNullOrEmpty() && names.any { it.type === MakerEnum.NAME_LAST } && names.any { it.type === MakerEnum.NAME_FIRST }) {
-            val firstNameFirstInitial = names.first() { it.type == MakerEnum.NAME_FIRST }.value.first().toString()
-            val firstName = names.first { it.type == MakerEnum.NAME_FIRST }.value
-            val lastName = names.first() { it.type == MakerEnum.NAME_LAST }.value
+        if (!names.isNullOrEmpty() && names.any { it.maker === MakerEnum.NAME_LAST } && names.any { it.maker === MakerEnum.NAME_FIRST }) {
+            val firstNameFirstInitial = names.first() { it.maker == MakerEnum.NAME_FIRST }.value.first().toString()
+            val firstName = names.first { it.maker == MakerEnum.NAME_FIRST }.value
+            val lastName = names.first() { it.maker == MakerEnum.NAME_LAST }.value
             localPartNames.add(firstName)
             localPartNames.add(lastName)
             localPartNames.add(firstName + lastName)
@@ -85,22 +84,22 @@ class EmailGenerator {
             localPartNames.add(firstNameFirstInitial + lastName + rand.nextInt(999))
             localPartNames.add(dataFaker.company().buzzword() + lastName)
             localPartNames.add(dataFaker.company().buzzword() + lastName + rand.nextInt(999))
-            localPartNames.add(adjectiveGenerator.getRandomAdjective() + lastName)
-            localPartNames.add(adjectiveGenerator.getRandomAdjective() + lastName + rand.nextInt(999))
+            localPartNames.add(Adjectives.quirky.random() + lastName)
+            localPartNames.add(Adjectives.quirky.random() + lastName + rand.nextInt(999))
             return localPartNames.random().lowercase().filterNot { it.isWhitespace() }
         }
-        if (!names.isNullOrEmpty() && names.any { it.type === MakerEnum.NAME_LAST }) {
-            val lastName = names.first() { it.type == MakerEnum.NAME_LAST }.value
-            localPartNames.add(adjectiveGenerator.getRandomAdjective() + lastName)
-            localPartNames.add(adjectiveGenerator.getRandomAdjective() + lastName + rand.nextInt(999))
+        if (!names.isNullOrEmpty() && names.any { it.maker === MakerEnum.NAME_LAST }) {
+            val lastName = names.first() { it.maker == MakerEnum.NAME_LAST }.value
+            localPartNames.add(Adjectives.quirky.random() + lastName)
+            localPartNames.add(Adjectives.quirky.random() + lastName + rand.nextInt(999))
             localPartNames.add(dataFaker.company().buzzword() + lastName)
             localPartNames.add(dataFaker.company().buzzword() + lastName + rand.nextInt(999))
             return localPartNames.random().lowercase().filterNot { it.isWhitespace() }
         }
-        if (!names.isNullOrEmpty() && names.any { it.type === MakerEnum.NAME_FIRST }) {
-            val firstName = names.first() { it.type == MakerEnum.NAME_FIRST }.value
-            localPartNames.add(adjectiveGenerator.getRandomAdjective() + firstName)
-            localPartNames.add(adjectiveGenerator.getRandomAdjective() + firstName + rand.nextInt(999))
+        if (!names.isNullOrEmpty() && names.any { it.maker === MakerEnum.NAME_FIRST }) {
+            val firstName = names.first() { it.maker == MakerEnum.NAME_FIRST }.value
+            localPartNames.add(Adjectives.quirky.random() + firstName)
+            localPartNames.add(Adjectives.quirky.random() + firstName + rand.nextInt(999))
             localPartNames.add(dataFaker.company().buzzword() + firstName)
             localPartNames.add(dataFaker.company().buzzword() + firstName + rand.nextInt(999))
             return localPartNames.random().lowercase().filterNot { it.isWhitespace() }
@@ -127,11 +126,11 @@ class EmailGenerator {
 
         if (!existingNames.isNullOrEmpty()) {
             val nameItems =
-                existingNames.filter { item -> item.type === MakerEnum.NAME_FIRST || item.type === MakerEnum.NAME_LAST || item.type === MakerEnum.NAME_COMPANY }
+                existingNames.filter { item -> item.maker === MakerEnum.NAME_FIRST || item.maker === MakerEnum.NAME_LAST || item.maker === MakerEnum.NAME_COMPANY }
             if (nameItems.isNotEmpty()) {
                 val domainsFromProvidedFakers = mutableListOf<Pair<FakerEnum?, String>>()
                 for (name in nameItems) {
-                    when (name.from) {
+                    when (name.faker) {
                         FakerEnum.LORD_OF_THE_RINGS -> domainsFromProvidedFakers.add(Pair(FakerEnum.LORD_OF_THE_RINGS, dataFaker.lordOfTheRings().location()))
                         FakerEnum.HARRY_POTTER -> domainsFromProvidedFakers.add(Pair(FakerEnum.HARRY_POTTER, dataFaker.harryPotter().location()))
                         FakerEnum.GAME_OF_THRONES -> domainsFromProvidedFakers.add(Pair(FakerEnum.GAME_OF_THRONES, dataFaker.gameOfThrones().city()))

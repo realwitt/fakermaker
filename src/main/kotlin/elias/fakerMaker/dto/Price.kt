@@ -1,5 +1,5 @@
 package elias.fakerMaker.dto
-class PriceDto() : Maker<Any>(
+class Price() : Maker<Any>(
     nickName = "",
     isNullable = false,
     options = listOf()
