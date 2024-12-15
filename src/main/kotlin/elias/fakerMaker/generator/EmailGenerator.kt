@@ -1,6 +1,6 @@
 package elias.fakerMaker.generator
 
-import elias.fakerMaker.customFakers.Adjectives
+import elias.fakerMaker.fakers.Adjectives
 import elias.fakerMaker.dto.DataTableItem
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.MakerEnum
@@ -66,50 +66,40 @@ class EmailGenerator {
         return mailProviders.random()
     }
 
-    private fun generateRandomEmailLocalPart(names: List<DataTableItem>?): String {
-        val localPartNames = mutableListOf(
-            dataFaker.company().buzzword() + dataFaker.animal().name(),
-            Adjectives.quirky.random() + dataFaker.animal().name(),
-        )
+    private fun generateRandomEmailLocalPart(dataTableItems: List<DataTableItem>?): String {
+        val localPartNames = mutableListOf<String>()
 
-        // note: if multiple names are given, only the first instance of a first and last name will be used
-        if (!names.isNullOrEmpty() && names.any { it.maker === MakerEnum.NAME_LAST } && names.any { it.maker === MakerEnum.NAME_FIRST }) {
-            val firstNameFirstInitial = names.first() { it.maker == MakerEnum.NAME_FIRST }.value.first().toString()
-            val firstName = names.first { it.maker == MakerEnum.NAME_FIRST }.value
-            val lastName = names.first() { it.maker == MakerEnum.NAME_LAST }.value
-            localPartNames.add(firstName)
-            localPartNames.add(lastName)
+        if (dataTableItems.isNullOrEmpty()) {
+            localPartNames.add(dataFaker.company().buzzword() + dataFaker.animal().name())
+            localPartNames.add(Adjectives.quirky.random() + dataFaker.animal().name())
+            localPartNames.add(dataFaker.company().buzzword())
+            localPartNames.add(dataFaker.company().buzzword() + rand.nextInt(999))
+            return localPartNames.random().lowercase().filter { it.isLetterOrDigit() }
+        }
+
+        // if multiple names are given, it will use the first instance of a first name, and last name
+        // if only a single first or last name exists, or neither, it will look for a company name
+        // we could use fold() here to be more performant... but this reads a lot easier
+        val firstName = dataTableItems.find { it.maker == MakerEnum.NAME_FIRST }?.value ?: ""
+        val lastName = dataTableItems.find { it.maker == MakerEnum.NAME_LAST }?.value ?: ""
+
+        // if first name and last name exist
+        if (firstName.isNotEmpty() && lastName.isNotEmpty()) {
+            val firstNameFirstInitial = firstName.first()
             localPartNames.add(firstName + lastName)
+            localPartNames.add(firstName + lastName + rand.nextInt(999))
             localPartNames.add(firstNameFirstInitial + lastName)
             localPartNames.add(firstNameFirstInitial + lastName + rand.nextInt(999))
-            localPartNames.add(dataFaker.company().buzzword() + lastName)
-            localPartNames.add(dataFaker.company().buzzword() + lastName + rand.nextInt(999))
-            localPartNames.add(Adjectives.quirky.random() + lastName)
-            localPartNames.add(Adjectives.quirky.random() + lastName + rand.nextInt(999))
             return localPartNames.random().lowercase().filterNot { it.isWhitespace() }
         }
-        if (!names.isNullOrEmpty() && names.any { it.maker === MakerEnum.NAME_LAST }) {
-            val lastName = names.first() { it.maker == MakerEnum.NAME_LAST }.value
-            localPartNames.add(Adjectives.quirky.random() + lastName)
-            localPartNames.add(Adjectives.quirky.random() + lastName + rand.nextInt(999))
-            localPartNames.add(dataFaker.company().buzzword() + lastName)
-            localPartNames.add(dataFaker.company().buzzword() + lastName + rand.nextInt(999))
+        val name = if (lastName.isNotEmpty()) lastName else firstName
+        if (name.isNotEmpty()) {
+            localPartNames.add(name)
+            localPartNames.add(name + rand.nextInt(999))
+            localPartNames.add(name + Adjectives.quirky.random())
+            localPartNames.add(name + dataFaker.company().buzzword())
             return localPartNames.random().lowercase().filterNot { it.isWhitespace() }
         }
-        if (!names.isNullOrEmpty() && names.any { it.maker === MakerEnum.NAME_FIRST }) {
-            val firstName = names.first() { it.maker == MakerEnum.NAME_FIRST }.value
-            localPartNames.add(Adjectives.quirky.random() + firstName)
-            localPartNames.add(Adjectives.quirky.random() + firstName + rand.nextInt(999))
-            localPartNames.add(dataFaker.company().buzzword() + firstName)
-            localPartNames.add(dataFaker.company().buzzword() + firstName + rand.nextInt(999))
-            return localPartNames.random().lowercase().filterNot { it.isWhitespace() }
-        }
-
-        localPartNames.add(dataFaker.company().buzzword())
-        localPartNames.add(dataFaker.animal().name() + dataFaker.company().buzzword())
-        localPartNames.add(dataFaker.animal().name() + dataFaker.company().buzzword() + rand.nextInt(999))
-        localPartNames.add(dataFaker.company().buzzword() + dataFaker.animal().name())
-        localPartNames.add(dataFaker.company().buzzword() + dataFaker.animal().name() + rand.nextInt(999))
         return localPartNames.random().lowercase().filter { it.isLetterOrDigit() }
     }
 
@@ -154,11 +144,11 @@ class EmailGenerator {
         val randomFullDomainName = listOf(customDomainNameWithTld, generateRandomMailProvider())
 
         return DataTableItem(
-            "${localPartName.lowercase()}@${randomFullDomainName[randomInt].lowercase()}",
-            MakerEnum.EMAIL,
-            if (randomInt == 0) customDomainName.first else null,
-            if (randomInt == 0 && customDomainName.first != null) customDomainName.second else null,
-            if (randomInt == 0) customDomainName.first?.let { nameGenerator.getFandomUrl(it, customDomainName.second, false)} else null,
+            MakerEnum.EMAIL,  // maker
+            if (randomInt == 0) customDomainName.first else null,  // faker
+            if (randomInt == 0 && customDomainName.first != null) customDomainName.second else null,  // original
+            "${localPartName.lowercase()}@${randomFullDomainName[randomInt].lowercase()}",  // value
+            if (randomInt == 0) customDomainName.first?.let { nameGenerator.getFandomUrl(it, customDomainName.second, false)} else null  // hyperlink
         )
     }
 

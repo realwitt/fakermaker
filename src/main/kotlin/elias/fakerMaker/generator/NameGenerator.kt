@@ -1,19 +1,15 @@
 package elias.fakerMaker.generator
 
-import elias.fakerMaker.customFakers.GravityFalls
-import elias.fakerMaker.customFakers.KingOfTheHill
-import elias.fakerMaker.customFakers.Monk
 import elias.fakerMaker.dto.DataTableItem
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.MakerEnum
+import elias.fakerMaker.fakers.*
 import net.datafaker.Faker
 import kotlin.random.Random
 
 class NameGenerator {
     private val dataFaker: Faker = Faker()
     private val rand: Random = Random
-
-    // todo: make pr in datafaker to add this
 
     private fun nameGenerator(fakers: List<FakerEnum>): MutableMap<FakerEnum, String> {
         val namesMap = emptyMap<FakerEnum, String>().toMutableMap()
@@ -31,8 +27,11 @@ class NameGenerator {
                 FakerEnum.KING_OF_THE_HILL -> namesMap[FakerEnum.KING_OF_THE_HILL] = KingOfTheHill.characters.random()
                 FakerEnum.LORD_OF_THE_RINGS -> namesMap[FakerEnum.LORD_OF_THE_RINGS] = dataFaker.lordOfTheRings().character()
                 FakerEnum.MONK -> namesMap[FakerEnum.MONK] = Monk.characters.random()
+                FakerEnum.PARKS_AND_REC -> namesMap[FakerEnum.PARKS_AND_REC] = ParksAndRec.characters.random()
                 FakerEnum.RICK_AND_MORTY -> namesMap[FakerEnum.RICK_AND_MORTY] = dataFaker.rickAndMorty().character()
                 FakerEnum.SILICON_VALLEY -> namesMap[FakerEnum.SILICON_VALLEY] = dataFaker.siliconValley().character()
+                FakerEnum.THE_OFFICE -> namesMap[FakerEnum.THE_OFFICE] = TheOffice.characters.random()
+                FakerEnum.THRONE_OF_GLASS -> namesMap[FakerEnum.THRONE_OF_GLASS] = ThroneOfGlass.characters.random()
             }
         }
         return namesMap
@@ -43,7 +42,6 @@ class NameGenerator {
             when {
                 name.startsWith("The ") || name.startsWith("Mrs. ") || name.startsWith("Mr. ") -> parts.lastOrNull()
                     ?: parts.first()
-
                 else -> parts.first()
             }
         }
@@ -54,12 +52,10 @@ class NameGenerator {
             when {
                 name.startsWith("The ") || name.startsWith("Mrs. ") || name.startsWith("Mr. ") -> parts.lastOrNull()
                     ?: parts.first()
-
                 else -> parts.last()
             }
         }
     }
-
 
     fun getFandomUrl(fakerEnum: FakerEnum, fullName: String, concatEntireName: Boolean): String {
         // allow more fine-grained control over which wiki we want to pull from
@@ -82,10 +78,10 @@ class NameGenerator {
     fun generateRandomFirstName(fakers: List<FakerEnum>?): DataTableItem {
         if (fakers.isNullOrEmpty()) {
             return DataTableItem(
+                null,
+                null,
+                null,
                 dataFaker.name().firstName(),
-                null,
-                null,
-                null,
                 null
             )
         }
@@ -93,10 +89,10 @@ class NameGenerator {
         val firstNames = getFirstNamesOnly(names)
         val randomFirstName = firstNames.toList().random()
         return DataTableItem(
-            randomFirstName.second,
             MakerEnum.NAME_FIRST,
             randomFirstName.first,
             names[randomFirstName.first],
+            randomFirstName.second,
             getFandomUrl(randomFirstName.first, names[randomFirstName.first]!!, false)
         )
     }
@@ -104,10 +100,10 @@ class NameGenerator {
     fun generateRandomLastName(fakers: List<FakerEnum>?): DataTableItem {
         if (fakers.isNullOrEmpty()) {
             return DataTableItem(
+                null,
+                null,
+                null,
                 dataFaker.name().lastName(),
-                null,
-                null,
-                null,
                 null
             )
         }
@@ -115,14 +111,11 @@ class NameGenerator {
         val lastNames = getLastNamesOnly(names)
         val randomLastName = lastNames.toList().random()
         return DataTableItem(
-            randomLastName.second,
             MakerEnum.NAME_LAST,
             randomLastName.first,
             names[randomLastName.first],
+            randomLastName.second,
             getFandomUrl(randomLastName.first, names[randomLastName.first]!!, false)
         )
     }
-
-
-
 }

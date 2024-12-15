@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 val dataService = DataService()
-val fakers = randomEnums<FakerEnum>()
-val makers = randomEnums<MakerEnum>()
 
 @RestController
 @RequestMapping("/api/faker")
@@ -20,6 +18,12 @@ class DataController {
     @PostMapping("/schema")
     fun getFakeData(): List<List<DataTableItem>> {
         // todo: create the schema argument (which will determine the payload of the buildMeAnArmy method)
+
+//        val fakers = randomEnums<FakerEnum>()
+//        val makers = randomEnums<MakerEnum>()
+
+        val fakers = listOf(FakerEnum.GRAVITY_FALLS)
+        val makers = listOf(MakerEnum.EMAIL, MakerEnum.NAME_FIRST, MakerEnum.NAME_LAST)
 
         // WIP... currently returns a random datatable payload
         return dataService.buildMeAnArmy(25, fakers, makers)

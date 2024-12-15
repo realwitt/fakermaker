@@ -1,4 +1,4 @@
-package elias.fakerMaker.customFakers
+package elias.fakerMaker.fakers
 
 object Adjectives {
 
