@@ -1,4 +1,4 @@
-package elias.fakerMaker.fakers
+package elias.fakerMaker.fakers.tvshow
 
 object TheOffice {
     val characters = listOf(
@@ -177,6 +177,75 @@ object TheOffice {
         "Benihana",
         "The Bog",
         "Here Comes Treble",
+    )
+
+    val companies = listOf(
+        // Paper Companies
+        "Dunder Mifflin",
+        "Sabre",
+        "Prince Paper",
+        "Michael Scott Paper Company",
+        "Staples",
+        "Office Depot",
+        "Pendleton",
+        // Major Competitors/Corporate
+        "Staples",
+        "Office Depot",
+        "Big Red Paper Company",
+        "Stone & Son Paper Company",
+        // Dunder Mifflin Branches
+        "Dunder Mifflin Scranton",
+        "Dunder Mifflin Corporate",
+        "Dunder Mifflin Stamford",
+        "Dunder Mifflin Utica",
+        "Dunder Mifflin Buffalo",
+        "Dunder Mifflin Albany",
+        "Dunder Mifflin Nashua",
+        "Dunder Mifflin Camden",
+        "Dunder Mifflin Yonkers",
+        // Local Businesses
+        "Poor Richard's Pub",
+        "Chili's",
+        "Hooters",
+        "Cooper's Seafood",
+        "Alfredo's Pizza Cafe",
+        "Pizza by Alfredo",
+        "Benihana",
+        "Farley's Pub",
+        // Client Companies
+        "Blue Cross of Pennsylvania",
+        "Harper Collins",
+        "Pennsylvania Dutch Paper Company",
+        "Stone & Son Paper Merchants",
+        // Entertainment/Media
+        "WBRE-TV News",
+        "Scranton Times",
+        "Sandals Resorts",
+        "Here Comes Treble",
+        // Small Businesses/Startups
+        "Serenity by Jan",
+        "Schrute Farms",
+        "Athlead/Athleap",
+        "Bob Vance Refrigeration",
+        "Wuphf.com",
+        "Shoe La La",
+        "Mike's Cereal Shack",
+        "The Faces of Scranton",
+        "Somehow I Manage Publishing",
+        // Real Estate
+        "Vance Refrigeration",
+        "Scranton Business Park",
+        "Scranton Industrial Park",
+        // Healthcare
+        "Scranton Hospital",
+        "Dr. Crentist's Dental Office",
+        // Miscellaneous
+        "Burlington Coat Factory",
+        "Steamtown Mall",
+        "Lackawanna County Coal Mine Tour",
+        "Camp Wonetu",
+        "Dwight Schrute Gym for Muscles",
+        "Professor Copperfield's Miracle Legumes"
     )
 
 }

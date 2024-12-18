@@ -16,6 +16,7 @@ class DataService {
 
     // given faker and maker arrays, make n rows of data
     fun buildMeAnArmy(armySize: Int, fakers: List<FakerEnum>, makers: List<MakerEnum>): MutableList<MutableList<DataTableItem>> {
+        // sort makers by NAME first so we can use the names to riff off of for emails
         val sortedMakers = makers.sortedBy { !it.name.contains("NAME") }
         val dataTableRows = mutableListOf<MutableList<DataTableItem>>()
         for (i in 0 until armySize ) {
@@ -23,9 +24,9 @@ class DataService {
             // gotta have a value for each maker in the row
             for (maker in sortedMakers) {
                 when (maker) {
-                    MakerEnum.NAME_FIRST -> dataTableRow.add(nameGenerator.generateRandomFirstName(fakers))
-                    MakerEnum.NAME_LAST -> dataTableRow.add(nameGenerator.generateRandomLastName(fakers))
-                    MakerEnum.NAME_COMPANY -> dataTableRow.add(DataTableItem())
+                    MakerEnum.NAME_FIRST -> dataTableRow.add(nameGenerator.firstName(fakers))
+                    MakerEnum.NAME_LAST -> dataTableRow.add(nameGenerator.lastName(fakers))
+                    MakerEnum.NAME_COMPANY -> dataTableRow.add(nameGenerator.companyName(fakers))
                     MakerEnum.EMAIL -> dataTableRow.add(emailGenerator.generateRandomEmail(dataTableRow))
                     MakerEnum.PHONE -> dataTableRow.add(DataTableItem())
                     MakerEnum.ADDRESS -> dataTableRow.add(DataTableItem())

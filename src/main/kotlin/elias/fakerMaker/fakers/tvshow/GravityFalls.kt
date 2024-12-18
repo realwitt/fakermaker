@@ -1,4 +1,4 @@
-package elias.fakerMaker.fakers
+package elias.fakerMaker.fakers.tvshow
 
 object GravityFalls {
     val characters = listOf(
@@ -149,5 +149,61 @@ object GravityFalls {
         "Theraprism",
         "Upside-Down Town",
         "West Coast Tech"
+    )
+
+    val companies = listOf(
+        // Major Businesses
+        "Mystery Shack",
+        "Tent of Telepathy",
+        "Gleeful's Auto Sale",
+        "Northwest Mud Flaps",
+        // Retail Stores
+        "Gravity Falls Mall",
+        "Dusk 2 Dawn",
+        "Skull Fracture",
+        "Ye Royal Discount Putt Hutt",
+        "Summerween Superstore",
+        "Hermanos Brothers",
+        "Edgy On Purpose",
+        "Gary's Games and Stuff",
+        // Food Services
+        "Greasy's Diner",
+        "Yumberjacks",
+        "Smokey Joe's All-You-Can-Eat",
+        "Hoo-Ha Owl's Pizzamatronic Jamboree",
+        "Hermanos Brothers",
+        "The Club",
+        // Entertainment
+        "Gravity Falls Gossiper",
+        "Gravity Falls Public Access TV",
+        "The Royal Order of the Holy Mackerel",
+        "Lake Gravity Falls Fishing Season",
+        // Local Services
+        "Gravity Falls Hospital",
+        "Gravity Falls Dump",
+        "Gravity Falls Library",
+        "Gravity Falls Prison",
+        // Tourist Traps
+        "Mystery Mountain",
+        "Upside-Down Town",
+        "Log Land",
+        "Petting Zoo",
+        // Fictional Brands
+        "Pitt Cola",
+        "Smile Dip",
+        "Taco Time",
+        "Cookie Chips",
+        // Shops in the Mall
+        "Build A Beaver",
+        "Overalls Are Cool Now",
+        "BeeblyBoop's Videogames",
+        // Other Businesses
+        "Big Gunz Laser Tag",
+        "Mattress Prince's Amazing Mattress Store",
+        "Mystery Mountain",
+        "Pool Supply Store",
+        "Gravity Falls Civic Center and Buffet",
+        "Gravity Falls Boxing Gym",
+        "Barrels & Crates, Incorporated"
     )
 }

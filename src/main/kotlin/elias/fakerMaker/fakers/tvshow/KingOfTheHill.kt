@@ -1,4 +1,4 @@
-package elias.fakerMaker.fakers
+package elias.fakerMaker.fakers.tvshow
 
 object KingOfTheHill {
 
@@ -151,7 +151,7 @@ object KingOfTheHill {
         "Cotton Hill"
     )
 
-    val company = listOf(
+    val companies = listOf(
         "1st & Ten Sports Memorabilia",
         "1st Texas Bank",
         "24-Hour Computer Heaven",

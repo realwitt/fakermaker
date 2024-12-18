@@ -4,6 +4,10 @@ import elias.fakerMaker.dto.DataTableItem
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.MakerEnum
 import elias.fakerMaker.fakers.*
+import elias.fakerMaker.fakers.book.HarryPotter
+import elias.fakerMaker.fakers.book.ThroneOfGlass
+import elias.fakerMaker.fakers.tvshow.*
+import elias.fakerMaker.fakers.videogame.CallOfDuty
 import net.datafaker.Faker
 import kotlin.random.Random
 
@@ -11,7 +15,7 @@ class NameGenerator {
     private val dataFaker: Faker = Faker()
     private val rand: Random = Random
 
-    private fun nameGenerator(fakers: List<FakerEnum>): MutableMap<FakerEnum, String> {
+    private fun nameGenerator(fakers: List<FakerEnum>): Map<FakerEnum, String> {
         val namesMap = emptyMap<FakerEnum, String>().toMutableMap()
         for (faker in fakers) {
             when (faker) {
@@ -19,6 +23,7 @@ class NameGenerator {
                 FakerEnum.BASEBALL -> namesMap[FakerEnum.BASEBALL] = dataFaker.baseball().players()
                 FakerEnum.BASKETBALL -> namesMap[FakerEnum.BASKETBALL] = dataFaker.baseball().players()
                 FakerEnum.BREAKING_BAD -> namesMap[FakerEnum.BREAKING_BAD] = dataFaker.breakingBad().character()
+                FakerEnum.CALL_OF_DUTY -> namesMap[FakerEnum.CALL_OF_DUTY] = CallOfDuty.operators.random()
                 FakerEnum.CLASH_OF_CLANS -> namesMap[FakerEnum.CLASH_OF_CLANS] = dataFaker.clashOfClans().troop()
                 FakerEnum.DOCTOR_WHO -> namesMap[FakerEnum.DOCTOR_WHO] = dataFaker.doctorWho().character()
                 FakerEnum.GAME_OF_THRONES -> namesMap[FakerEnum.GAME_OF_THRONES] = dataFaker.gameOfThrones().character()
@@ -30,12 +35,33 @@ class NameGenerator {
                 FakerEnum.PARKS_AND_REC -> namesMap[FakerEnum.PARKS_AND_REC] = ParksAndRec.characters.random()
                 FakerEnum.RICK_AND_MORTY -> namesMap[FakerEnum.RICK_AND_MORTY] = dataFaker.rickAndMorty().character()
                 FakerEnum.SILICON_VALLEY -> namesMap[FakerEnum.SILICON_VALLEY] = dataFaker.siliconValley().character()
+                FakerEnum.TECH -> namesMap[FakerEnum.TECH] = Tech.people.random()
                 FakerEnum.THE_OFFICE -> namesMap[FakerEnum.THE_OFFICE] = TheOffice.characters.random()
                 FakerEnum.THRONE_OF_GLASS -> namesMap[FakerEnum.THRONE_OF_GLASS] = ThroneOfGlass.characters.random()
+                else -> continue
             }
         }
-        return namesMap
+        return namesMap.toMap()
     }
+
+    private fun companyGenerator(fakers: List<FakerEnum>): Map<FakerEnum, String> {
+        val namesMap = emptyMap<FakerEnum, String>().toMutableMap()
+        for (faker in fakers) {
+            when (faker) {
+                FakerEnum.GRAVITY_FALLS -> namesMap[FakerEnum.GRAVITY_FALLS] = GravityFalls.companies.random()
+                FakerEnum.HARRY_POTTER -> namesMap[FakerEnum.HARRY_POTTER] = HarryPotter.companies.random()
+                FakerEnum.KING_OF_THE_HILL -> namesMap[FakerEnum.KING_OF_THE_HILL] = KingOfTheHill.companies.random()
+                FakerEnum.MONK -> namesMap[FakerEnum.MONK] = Monk.companies.random()
+                FakerEnum.SILICON_VALLEY -> namesMap[FakerEnum.SILICON_VALLEY] = dataFaker.siliconValley().company()
+                FakerEnum.PARKS_AND_REC -> namesMap[FakerEnum.PARKS_AND_REC] = ParksAndRec.companies.random()
+                FakerEnum.TECH -> namesMap[FakerEnum.TECH] = Tech.companies.random()
+                FakerEnum.THE_OFFICE -> namesMap[FakerEnum.THE_OFFICE] = TheOffice.companies.random()
+                else -> continue
+            }
+        }
+        return namesMap.toMap()
+    }
+
 
     private fun getFirstNamesOnly(names: Map<FakerEnum, String>): Map<FakerEnum, String> = names.mapValues { (_, name) ->
         name.split(" ").let { parts ->
@@ -60,6 +86,7 @@ class NameGenerator {
     fun getFandomUrl(fakerEnum: FakerEnum, fullName: String, concatEntireName: Boolean): String {
         // allow more fine-grained control over which wiki we want to pull from
         // ...and bc fandom's Silicon Valley link is "silicon-valley" instead of "siliconvalley" -_-
+        // todo: make this a util, rename to wikiGenerator, and add a wikipedia url generator
         val fandomBaseUrl = when (fakerEnum) {
             FakerEnum.SILICON_VALLEY -> "silicon-valley.fandom.com/wiki/"
             FakerEnum.GAME_OF_THRONES -> "awoiaf.westeros.org/index.php/"
@@ -75,15 +102,9 @@ class NameGenerator {
         return "https://$fandomBaseUrl$fandomQueryParam"
     }
 
-    fun generateRandomFirstName(fakers: List<FakerEnum>?): DataTableItem {
+    fun firstName(fakers: List<FakerEnum>?): DataTableItem {
         if (fakers.isNullOrEmpty()) {
-            return DataTableItem(
-                null,
-                null,
-                null,
-                dataFaker.name().firstName(),
-                null
-            )
+            return DataTableItem()
         }
         val names = nameGenerator(fakers)
         val firstNames = getFirstNamesOnly(names)
@@ -97,10 +118,10 @@ class NameGenerator {
         )
     }
 
-    fun generateRandomLastName(fakers: List<FakerEnum>?): DataTableItem {
+    fun lastName(fakers: List<FakerEnum>?): DataTableItem {
         if (fakers.isNullOrEmpty()) {
             return DataTableItem(
-                null,
+                MakerEnum.NAME_LAST,
                 null,
                 null,
                 dataFaker.name().lastName(),
@@ -116,6 +137,28 @@ class NameGenerator {
             names[randomLastName.first],
             randomLastName.second,
             getFandomUrl(randomLastName.first, names[randomLastName.first]!!, false)
+        )
+    }
+
+    fun companyName(fakers: List<FakerEnum>?): DataTableItem {
+        if (fakers.isNullOrEmpty()) {
+            val randomCompany = Tech.companies.random()
+            return DataTableItem(
+                MakerEnum.NAME_COMPANY,
+                FakerEnum.TECH,
+                randomCompany,
+                randomCompany,
+                null
+            )
+        }
+        val names = companyGenerator(fakers)
+        val name = names.entries.random()
+        return DataTableItem(
+            MakerEnum.NAME_COMPANY,
+            name.key,
+            name.value,
+            name.value,
+            ""
         )
     }
 }

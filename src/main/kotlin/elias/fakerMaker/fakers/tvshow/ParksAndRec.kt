@@ -1,4 +1,4 @@
-package elias.fakerMaker.fakers
+package elias.fakerMaker.fakers.tvshow
 
 object ParksAndRec {
     val characters = listOf(
@@ -215,6 +215,61 @@ object ParksAndRec {
         "Turnbill Mansion",
         "Wamapoke Casino",
         "William H. Harrison Museum"
+    )
+
+    val companies = listOf(
+        // Major Corporations
+        "Sweetums",
+        "Gryzzl",
+        "Paunch Burger",
+        "Entertainment 720",
+        "Very Good Building & Development Co.",
+        "Rent-A-Swag",
+        "Lady Foot Locker",
+        "Kernston's Rubber Nipples",
+        // Media Companies
+        "Pawnee Journal",
+        "Pawnee Sun",
+        "Pawnee Today",
+        "Channel 4 News",
+        "93.7: The Douche",
+        "Crazy Ira and The Douche Radio Show",
+        // Restaurants and Food Services
+        "JJ's Diner",
+        "The Snakehole Lounge",
+        "Food and Stuff",
+        "Sue's Salads",
+        "Tom's Bistro",
+        "The Bulge",
+        "Grain 'n Simple",
+        "Big Head Joe's",
+        // Small Businesses
+        "Tilton & Radomski Accounting",
+        "Dennis's Beepers",
+        "Jurassic Fork",
+        "Sub Club",
+        "Wamapoke Casino",
+        // Failed/Temporary Businesses
+        "Low-Cal Calzone Zone",
+        "Tommy Fresh",
+        "Pawnee VideoDome",
+        "Dr. Richard Nygard's Practice",
+        "Pound Town",
+        // Online/Tech Companies
+        "The Cloudy Cloud",
+        "Know Ya Boo",
+        "E-Phone",
+        // Chains/Franchises
+        "Borders",
+        "Blockbuster",
+        "Harvey James",
+        // Event Planning/Entertainment
+        "Essence of Twilight",
+        "Ultimate Party Zone",
+        "The Glitter Factory",
+        // Manufacturing
+        "Hammer Mill",
+        "Newport Living and Leisure"
     )
 
 }

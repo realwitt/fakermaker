@@ -1,4 +1,4 @@
-package elias.fakerMaker.fakers
+package elias.fakerMaker.fakers.book
 
 object ThroneOfGlass {
     val characters = listOf(

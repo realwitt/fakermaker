@@ -1,4 +1,4 @@
-package elias.fakerMaker.fakers
+package elias.fakerMaker.fakers.tvshow
 
 object Monk {
     val characters = listOf(
@@ -195,5 +195,65 @@ object Monk {
         "Joanne Raphelson",
         "Joe Christie",
         "Joe Cochran"
+    )
+
+    val companies = listOf(
+        // Major Companies
+        "Trudy's Chronicle",
+        "San Francisco Telegraph",
+        "St. Claire's Hospital",
+        "Hosterman and Associates",
+        "Powell's Construction",
+        // Retail & Services
+        "Happy Valley Shopping Mall",
+        "Ralph's Pharmacy",
+        "Willie's Dry Cleaning",
+        "Water & Power",
+        "Cobra Gym",
+        "Tie Rack",
+        // Food & Dining
+        "Monica's Cafe",
+        "Joe's Bar",
+        "Monk's Diner",
+        "Greek Restaurant",
+        "La Pasteria",
+        // Entertainment
+        "KPIX Channel 5",
+        "Bay Area Radio",
+        "Urban Freedom Records",
+        "West Coast Theater",
+        "Heritage Theater",
+        // Financial Institutions
+        "First California Bank",
+        "Bay Area Savings and Loan",
+        "Pacific Trust",
+        "Hamilton Trust Bank",
+        // Technology Companies
+        "Mega-Byte",
+        "Computer Renaissance",
+        "Ellison Software",
+        "Pertronics",
+        // Security Companies
+        "Intertect Security",
+        "Leland Security Systems",
+        "Diamond Security",
+        // Legal Firms
+        "Stottlemeyer & Associates",
+        "Harrison, Powell & Schwartzman",
+        "Rickover & Associates",
+        // Transportation
+        "Yellow Cab Company",
+        "Bay Area Transit",
+        "Golden State Bus Lines",
+        // Real Estate
+        "Breen Properties",
+        "Summit Realty",
+        "Bay Area Properties",
+        // Miscellaneous Businesses
+        "Natalie's Cleaning Service",
+        "Independent Mercantile",
+        "City Gas & Electric",
+        "Superior Storage",
+        "Maritime Museum Gift Shop"
     )
 }
