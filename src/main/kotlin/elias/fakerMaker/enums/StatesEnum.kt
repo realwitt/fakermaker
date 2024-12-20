@@ -1,11 +1,8 @@
 package elias.fakerMaker.enums
 
 enum class StatesEnum(val fullName: String) {
-    AA("Armed Forces Americas"),
-    AE("Armed Forces Africa, Europe, Middle East and Canada"),
     AK("Alaska"),
     AL("Alabama"),
-    AP("Armed Forces Pacific"),
     AZ("Arizona"),
     AR("Arkansas"),
     CA("California"),
@@ -53,5 +50,20 @@ enum class StatesEnum(val fullName: String) {
     WA("Washington"),
     WV("West Virginia"),
     WI("Wisconsin"),
-    WY("Wyoming")
+    WY("Wyoming"),
+
+    // weird ones
+    AA("Armed Forces Americas"),
+    AE("Armed Forces Africa, Europe, Middle East and Canada"),
+    AP("Armed Forces Pacific"),
+    AS("American Samoa"),
+    DC("District of Columbia"),
+    FM("Federated States of Micronesia"),
+    GU("Guam"),
+    MH("Marshall Islands (Hawaii)"),
+    MP("Northern Mariana Islands (Marianas Pacific)"),
+    PR("Puerto Rico"),
+    PW("Palau"),
+    VI("Virgin Islands"),
+    state("weird edge case for data")
 }
