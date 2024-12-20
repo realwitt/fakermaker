@@ -2,6 +2,13 @@ package elias.fakerMaker.fakers
 
 object Murica {
     // todo: figure out how to use these to make valid addresses with zip codes...
+    val states = listOf(
+        "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+        "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+        "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+        "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+        "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+    )
 
     val cities = listOf(
         // Alabama

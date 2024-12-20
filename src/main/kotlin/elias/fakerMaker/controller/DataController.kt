@@ -23,7 +23,8 @@ class DataController {
 //        val makers = randomEnums<MakerEnum>()
 
         val fakers = listOf(FakerEnum.GRAVITY_FALLS, FakerEnum.KING_OF_THE_HILL, FakerEnum.HARRY_POTTER)
-        val makers = listOf(MakerEnum.EMAIL, MakerEnum.NAME_FIRST, MakerEnum.NAME_LAST, MakerEnum.NAME_COMPANY)
+//        val makers = listOf(MakerEnum.EMAIL, MakerEnum.NAME_FIRST, MakerEnum.NAME_LAST, MakerEnum.NAME_COMPANY)
+        val makers = listOf(MakerEnum.CITY)
 
         // WIP... currently returns a random datatable payload
         return dataService.buildMeAnArmy(40, fakers, makers)

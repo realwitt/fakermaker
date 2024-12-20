@@ -14,7 +14,6 @@ class EmailGenerator {
     private val rand: Random = Random
     private val nameGenerator: NameGenerator = NameGenerator()
 
-
     private fun generateRandomEmailLocalPart(dataTableItems: List<DataTableItem>?): String {
         val localPartNames = mutableListOf<String>()
         // we could use fold() here to be more performant... but this reads a lot easier
@@ -80,7 +79,7 @@ class EmailGenerator {
         else -> emptyList()
     }
 
-    // not all fakers will have email values... so we'll keep track of those that do here.
+    // not all fakers will have email values... so we gotta keep track of those that do
     private val randomEmailFaker = listOf(
         FakerEnum.CALL_OF_DUTY, FakerEnum.LORD_OF_THE_RINGS,
         FakerEnum.HARRY_POTTER, FakerEnum.GAME_OF_THRONES,
@@ -130,9 +129,9 @@ class EmailGenerator {
         return allDomains.random()
     }
 
-        fun generateRandomEmail(existingNames: List<DataTableItem>?): DataTableItem {
-        val localPartName = generateRandomEmailLocalPart(existingNames)
-        val customDomainName = generateRandomDomain(existingNames)
+        fun generateRandomEmail(dataTableItems: List<DataTableItem>?): DataTableItem {
+        val localPartName = generateRandomEmailLocalPart(dataTableItems)
+        val customDomainName = generateRandomDomain(dataTableItems)
         val customDomainNameWithTld = customDomainName.second.filter { it.isLetterOrDigit() } + Tech.TLDs.random()
         val randomInt = rand.nextInt(2)
         // randomly pick either a custom domain name based on fakers, or a domain name from the mail providers

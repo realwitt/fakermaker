@@ -141,6 +141,7 @@ class NameGenerator {
     }
 
     fun companyName(fakers: List<FakerEnum>?): DataTableItem {
+        // todo: use the same pattern we did in the emailGenerator
         if (fakers.isNullOrEmpty()) {
             val randomCompany = Tech.companies.random()
             return DataTableItem(

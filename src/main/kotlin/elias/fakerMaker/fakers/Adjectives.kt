@@ -1,5 +1,6 @@
 package elias.fakerMaker.fakers
 
+
 object Adjectives {
 
     val quirky = listOf(

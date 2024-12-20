@@ -1,5 +1,6 @@
 package elias.fakerMaker
 
+import elias.fakerMaker.generator.AmericaGenerator
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
