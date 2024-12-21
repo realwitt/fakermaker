@@ -18,6 +18,9 @@ import org.springframework.stereotype.Component
 object AmericaGenerator {
     private val logger = KotlinLogging.logger {}
     private lateinit var americaData: AmericaData
+    private val excludedStates = setOf(
+        StatesEnum.state
+    )
 
     @OptIn(ExperimentalSerializationApi::class)
     @PostConstruct
@@ -39,28 +42,59 @@ object AmericaGenerator {
             MakerEnum.STATE,
             null,
             null,
-            RandomEnum.randomEnum<StatesEnum>().toString(),
+            StatesEnum.entries
+                .filter { it !in excludedStates }
+                .random().toString(),
             null
         )
     }
 
     fun city(existingItems: List<DataTableItem>?): DataTableItem {
+
         val state = existingItems?.find { it.maker == MakerEnum.STATE }?.value?.let {
             StatesEnum.valueOf(it)
-        } ?: RandomEnum.randomEnum<StatesEnum>()
+        } ?: StatesEnum.entries
+            .filter { it !in excludedStates }
+            .random()
 
-        val cityValue = americaData[state]?.entries?.random()?.key ?: ""
+        val city = americaData[state]?.entries?.random()?.key ?: ""
 
         return DataTableItem(
             MakerEnum.CITY,
             null,
             null,
-            cityValue,
+            city,
             null
         )
     }
 
-    // zip
+    // todo: we need to rework the dataset bc it's getting rid of dup zip codes (see Wyckoff, NH)
+    fun zip(existingItems: List<DataTableItem>?): DataTableItem {
+        // Get state - either from existing items or random
+        val state = existingItems?.find { it.maker == MakerEnum.STATE }?.value?.let {
+            StatesEnum.valueOf(it)
+        } ?: StatesEnum.entries
+            .filter { it !in excludedStates }
+            .random()
+
+        // Get city - either from existing items or random for the selected state
+        val city = existingItems?.find { it.maker == MakerEnum.CITY }?.value
+            ?: americaData[state]?.entries?.random()?.key
+            ?: throw IllegalStateException("No cities found for state $state")
+
+        // Get random zip code for the state/city combination
+        val zip = americaData[state]?.get(city)?.zipCodes?.random()
+            ?: throw IllegalStateException("No zip codes found for $city, $state")
+
+        return DataTableItem(
+            MakerEnum.ZIP,
+            null,
+            null,
+            zip,
+            null
+        )
+    }
+
     // address 1
     // address 2
     // phone (50% chance to be tied to the address)

@@ -34,7 +34,7 @@ class DataService {
                     MakerEnum.ADDRESS_2 -> dataTableRow.add(DataTableItem())
                     MakerEnum.STATE -> dataTableRow.add(americaGenerator.state())
                     MakerEnum.CITY -> dataTableRow.add(americaGenerator.city(dataTableRow))
-                    MakerEnum.ZIP -> dataTableRow.add(DataTableItem())
+                    MakerEnum.ZIP -> dataTableRow.add(americaGenerator.zip(dataTableRow))
                     MakerEnum.NUMBER_PRICE -> dataTableRow.add(DataTableItem())
                     MakerEnum.NUMBER_REGULAR -> dataTableRow.add(DataTableItem())
                     MakerEnum.DATE -> dataTableRow.add(DataTableItem())
