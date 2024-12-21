@@ -12,6 +12,7 @@ import kotlinx.serialization.json.decodeFromStream
 import mu.KotlinLogging
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Component
+import kotlin.random.Random
 
 
 @Component
@@ -43,11 +44,11 @@ object AmericaGenerator {
             .random()
 
         return DataTableItem(
-            MakerEnum.STATE,
-            null,
-            null,
-            state.toString(),
-            WikiUtil.createStateWikiLink(state),
+           maker    = MakerEnum.STATE,
+           faker    = null,
+           original = null,
+           value    = state.toString(),
+           wikiUrl  = WikiUtil.createStateWikiLink(state),
         )
     }
 
@@ -61,60 +62,117 @@ object AmericaGenerator {
         val city = americaData[state]?.entries?.random()?.key ?: ""
 
         return DataTableItem(
-            MakerEnum.CITY,
-            null,
-            "$city, $state",
-            city,
-            WikiUtil.createCityWikiLink(state, city),
+           maker    = MakerEnum.CITY,
+           faker    = null,
+           original = "$city, $state",
+           value    = city,
+           wikiUrl  = WikiUtil.createCityWikiLink(state, city),
         )
     }
 
-    fun zip(existingItems: List<DataTableItem>?): DataTableItem {
-        val state: StatesEnum?
-        val city: String?
+    private data class StateCity(
+        val state: StatesEnum,
+        val city: String
+    )
 
-        val zip = when {
-            // Case 1: City exists -> extract state and city from wiki link
+    private fun findLocation(existingItems: List<DataTableItem>?): StateCity {
+        return when {
+            // Case 1: ZIP exists -> find state and city that have this ZIP
+            existingItems?.find { it.maker == MakerEnum.ZIP }?.value != null -> {
+                val zip = existingItems.find { it.maker == MakerEnum.ZIP }?.value
+                    ?: throw IllegalStateException("ZIP value was somehow null")
+
+                // Find the state and city that contain this ZIP
+                val (state, city) = americaData.entries.firstNotNullOfOrNull { (stateEnum, cities) ->
+                    cities.entries.firstNotNullOfOrNull { (cityName, data) ->
+                        if (zip in data.zipCodes) {
+                            Pair(stateEnum, cityName)
+                        } else null
+                    }
+                } ?: throw IllegalStateException("ZIP $zip not found in any state/city")
+
+                StateCity(state, city)
+            }
+
+            // Case 2: City exists -> extract state and city from wiki link
             existingItems?.find { it.maker == MakerEnum.CITY }?.wikiUrl != null -> {
                 val cityWikiUrl = existingItems.find { it.maker == MakerEnum.CITY }?.run {
                     wikiUrl ?: throw IllegalStateException("City '$value' hyperlink was somehow null")
                 } ?: throw IllegalStateException("City not found")
 
                 val (extractedState, extractedCity) = WikiUtil.extractCityWikiValues(cityWikiUrl)
-                state = extractedState
-                city = extractedCity
-                americaData[state]?.get(city)?.zipCodes?.random() ?: run {
-                    throw IllegalStateException("City '${city}' somehow has no zipcode")
-                }
+                StateCity(extractedState, extractedCity)
             }
 
-            // Case 2: State exists (or if not, random state) -> random city from state -> random zip
+            // Case 3: State exists (or if not, random state) -> random city from state
             else -> {
                 val stateValue = existingItems?.find { it.maker == MakerEnum.STATE }?.value ?: StatesEnum.entries
                     .filter { it !in excludedStates }
                     .random().toString()
-                state = StatesEnum.valueOf(stateValue)
-                city = americaData[state]?.entries?.random()?.key ?: run {
-                    throw IllegalStateException("State $stateValue is somehow has no cities")
+                val state = StatesEnum.valueOf(stateValue)
+                val city = americaData[state]?.entries?.random()?.key ?: run {
+                    throw IllegalStateException("State $stateValue somehow has no cities")
                 }
-                americaData[state]?.get(city)?.zipCodes?.random() ?: run {
-                    throw IllegalStateException("State $city somehow has no zip codes")
-                }
+                StateCity(state, city)
             }
+        }
+    }
+
+    fun zip(existingItems: List<DataTableItem>?): DataTableItem {
+        val stateCity = findLocation(existingItems)
+        val zip = americaData[stateCity.state]?.get(stateCity.city)?.zipCodes?.random() ?: run {
+            throw IllegalStateException("City '${stateCity.city}' somehow has no zipcode")
         }
 
         return DataTableItem(
-            maker = MakerEnum.ZIP,
-            null,
-            "$city, $state $zip",
-            value = zip,
-            wikiUrl = WikiUtil.createCityWikiLink(state, city)
+           maker    = MakerEnum.ZIP,
+           faker    = null,
+           original = "${stateCity.city}, ${stateCity.state} $zip",
+           value    = zip,
+           wikiUrl  = WikiUtil.createCityWikiLink(stateCity.state, stateCity.city)
         )
     }
 
+    private fun findValidAreaCode(state: StatesEnum): Pair<String, StateCity> {
+        americaData[state]?.entries?.forEach { (city, locationInfo) ->
+            locationInfo.areaCodes.randomOrNull()?.let { areaCode ->
+                return Pair(areaCode, StateCity(state, city))
+            }
+        }
+        return findValidAreaCode(StatesEnum.entries.random())
+    }
+
+    // 50% chance to be tied to the existing locations provided
+    fun phone(existingItems: List<DataTableItem>?): DataTableItem {
+        val stateCity = findLocation(existingItems)
+        val areaCodeInfo = americaData[stateCity.state]?.get(stateCity.city)?.areaCodes?.random()?.let {
+            Pair(it, stateCity)
+        } ?: findValidAreaCode(stateCity.state)
+
+        val finalAreaCodeInfo = if (Random.nextBoolean()) {
+            areaCodeInfo
+        } else {
+            findValidAreaCode(StatesEnum.entries.filter { it !in excludedStates }.random())
+        }
+
+        // todo: make rest of number random, randomize formats
+        // (706) 341 2352
+        // 134-234-2345
+        // (455)2342344
+        // 3123453456
+        // 234.435.2345
+        return DataTableItem(
+            maker    = MakerEnum.PHONE,
+            faker    = null,
+            original = "${finalAreaCodeInfo.second.city}, ${finalAreaCodeInfo.second.state}",
+            value    = finalAreaCodeInfo.first,
+            wikiUrl  = WikiUtil.createCityWikiLink(finalAreaCodeInfo.second.state, finalAreaCodeInfo.second.city)
+        )
+    }
+
+
     // address 1
     // address 2
-    // phone (50% chance to be tied to the address)
 
 
 }
