@@ -13,7 +13,7 @@ class DataService {
     val dataFaker = Faker()
     val nameGenerator = NameGenerator()
     val emailGenerator = EmailGenerator()
-    val americaGenerator = AmericaGenerator()
+    val americaGenerator = AmericaGenerator
 
     // given faker and maker arrays, make n rows of data
     fun buildMeAnArmy(armySize: Int, fakers: List<FakerEnum>, makers: List<MakerEnum>): MutableList<MutableList<DataTableItem>> {
@@ -33,7 +33,7 @@ class DataService {
                     MakerEnum.ADDRESS -> dataTableRow.add(DataTableItem())
                     MakerEnum.ADDRESS_2 -> dataTableRow.add(DataTableItem())
                     MakerEnum.STATE -> dataTableRow.add(americaGenerator.state())
-                    MakerEnum.CITY -> dataTableRow.add(DataTableItem())
+                    MakerEnum.CITY -> dataTableRow.add(americaGenerator.city(dataTableRow))
                     MakerEnum.ZIP -> dataTableRow.add(DataTableItem())
                     MakerEnum.NUMBER_PRICE -> dataTableRow.add(DataTableItem())
                     MakerEnum.NUMBER_REGULAR -> dataTableRow.add(DataTableItem())

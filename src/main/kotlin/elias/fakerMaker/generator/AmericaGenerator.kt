@@ -9,35 +9,31 @@ import jakarta.annotation.PostConstruct
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
+import mu.KotlinLogging
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Component
-import java.io.File
 
 
 @Component
-class AmericaGenerator {
-//    private lateinit var americaData: AmericaData
+object AmericaGenerator {
+    private val logger = KotlinLogging.logger {}
+    private lateinit var americaData: AmericaData
 
     @OptIn(ExperimentalSerializationApi::class)
     @PostConstruct
     fun loadData() {
+        try {
+            val resource = ClassPathResource("AmericaData.json")
+            americaData = resource.inputStream.use { stream ->
+                Json.decodeFromStream<AmericaData>(stream)
+            }
 
-        val json = Json {
-            ignoreUnknownKeys = true
-            isLenient = true
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to load AmericaData.json..." }
+            throw e
         }
-
-        val resource = ClassPathResource("AmericaData.json")
-//        val jsonContent = resource.inputStream.bufferedReader().use { it.readText() }
-//        println(jsonContent)
-        val americaDataString = resource.inputStream.use { stream ->
-            json.decodeFromStream<AmericaData>(stream)
-        }
-        println("printing the data now...")
-        println(americaDataString.toString())
     }
 
-    // Rest of your functions remain the same
     fun state(): DataTableItem {
         return DataTableItem(
             MakerEnum.STATE,
@@ -48,24 +44,22 @@ class AmericaGenerator {
         )
     }
 
-//    fun city(existingItems: List<DataTableItem>?): DataTableItem {
-//        val state = existingItems?.find { it.maker == MakerEnum.STATE }?.value?.let {
-//            StatesEnum.valueOf(it)
-//        } ?: RandomEnum.randomEnum<StatesEnum>()
-//
-//        val cityValue = americaData.data[state.toString()]?.entries?.random()?.key ?: ""
-//
-//        return DataTableItem(
-//            MakerEnum.CITY,
-//            null,
-//            null,
-//            cityValue,
-//            null
-//        )
-//    }
+    fun city(existingItems: List<DataTableItem>?): DataTableItem {
+        val state = existingItems?.find { it.maker == MakerEnum.STATE }?.value?.let {
+            StatesEnum.valueOf(it)
+        } ?: RandomEnum.randomEnum<StatesEnum>()
 
-    // city
-    // state
+        val cityValue = americaData.data[state]?.entries?.random()?.key ?: ""
+
+        return DataTableItem(
+            MakerEnum.CITY,
+            null,
+            null,
+            cityValue,
+            null
+        )
+    }
+
     // zip
     // address 1
     // address 2

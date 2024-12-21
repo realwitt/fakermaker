@@ -47,6 +47,9 @@ dependencies {
 
     // https://mvnrepository.com/artifact/org.liquibase/liquibase-core
     implementation("org.liquibase:liquibase-core:4.29.1")
+
+    // https://mvnrepository.com/artifact/io.github.microutils/kotlin-logging-jvm
+    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
 }
 
 kotlin {

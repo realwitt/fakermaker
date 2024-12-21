@@ -7,9 +7,11 @@ import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import mu.KotlinLogging
 
 object AmericaDataSerializer: KSerializer<Map<StatesEnum, Map<String, LocationData>>> {
-    // Create a serializer for the inner Map type
+    private val logger = KotlinLogging.logger {}
+
     private val mapSerializer = MapSerializer(
         String.serializer(),
         MapSerializer(String.serializer(), LocationData.serializer())
@@ -26,8 +28,10 @@ object AmericaDataSerializer: KSerializer<Map<StatesEnum, Map<String, LocationDa
             try {
                 StatesEnum.valueOf(key)
             } catch (e: IllegalArgumentException) {
-                println("Warning: Unknown state code $key")
-                // You might want to handle unknown state codes differently
+                logger.error(e) { "Failed to parse StateEnum [code=$key]" }
+                throw e
+            } catch (e: Error) {
+                logger.error(e) { "Error occured parsing StateEnums..." }
                 throw e
             }
         }
