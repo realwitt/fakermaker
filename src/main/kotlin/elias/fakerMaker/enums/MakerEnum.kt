@@ -1,20 +1,22 @@
 package elias.fakerMaker.enums
 
-enum class MakerEnum(description: String) {
-    NAME_FIRST("first name"),
-    NAME_LAST("last name"),
-    NAME_COMPANY("company name"),
-    EMAIL("email"),
-    PHONE("phone number"),
-    ADDRESS("address"),
-    ADDRESS_2("address 2"),
-    STATE("state"),
-    CITY("city"),
-    ZIP("zip"),
-    NUMBER_PRICE("price"),
-    NUMBER_REGULAR("number"),
-    DATE("date"),
-    BOOLEAN("true/false"),
+import com.fasterxml.jackson.annotation.JsonValue
+
+enum class MakerEnum(@JsonValue val prettyName: String) {
+    NAME_FIRST("First Name"),
+    NAME_LAST("Last Name"),
+    NAME_COMPANY("Company Name"),
+    EMAIL("Email"),
+    PHONE("Phone Number"),
+    ADDRESS("Address"),
+    ADDRESS_2("Address 2"),
+    STATE("State"),
+    CITY("City"),
+    ZIP("Zip"),
+    NUMBER_PRICE("Price"),
+    NUMBER_REGULAR("Number"),
+    DATE("Date"),
+    BOOLEAN("True/False"),
     ID("Id"),
-    CREDIT_CARD_NUMBER("credit card"),
+    CREDIT_CARD_NUMBER("Credit Card"),
 }

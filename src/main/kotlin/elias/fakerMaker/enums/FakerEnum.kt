@@ -2,7 +2,7 @@ package elias.fakerMaker.enums
 
 import com.fasterxml.jackson.annotation.JsonValue
 
-enum class FakerEnum(@JsonValue val description: String) {
+enum class FakerEnum(@JsonValue val prettyName: String) {
     BACK_TO_THE_FUTURE("Back to the Future"),
     BASEBALL("Baseball"),
     BASKETBALL("Basketball"),
