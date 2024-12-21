@@ -137,11 +137,11 @@ object EmailGenerator {
         val randomFullDomainName = listOf(customDomainNameWithTld, Tech.emailProviders.random())
 
         return DataTableItem(
-            MakerEnum.EMAIL,  // maker
-            if (randomInt == 0) customDomainName.first else null,  // faker
-            if (randomInt == 0 && customDomainName.first != null) customDomainName.second else null,  // original
-            "${localPartName.lowercase()}@${randomFullDomainName[randomInt].lowercase()}",  // value
-            if (randomInt == 0) customDomainName.first?.let { NameGenerator.getFandomUrl(it, customDomainName.second, false)} else null  // hyperlink
+           maker    = MakerEnum.EMAIL,
+           faker    = if (randomInt == 0) customDomainName.first else null,
+           original = if (randomInt == 0 && customDomainName.first != null) customDomainName.second else null,
+           value    = "${localPartName.lowercase()}@${randomFullDomainName[randomInt].lowercase()}",
+           wikiUrl  = if (randomInt == 0) customDomainName.first?.let { NameGenerator.getFandomUrl(it, customDomainName.second, false)} else null
         )
     }
 

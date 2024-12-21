@@ -110,33 +110,33 @@ object NameGenerator {
         val firstNames = getFirstNamesOnly(names)
         val randomFirstName = firstNames.toList().random()
         return DataTableItem(
-            MakerEnum.NAME_FIRST,
-            randomFirstName.first,
-            names[randomFirstName.first],
-            randomFirstName.second,
-            getFandomUrl(randomFirstName.first, names[randomFirstName.first]!!, false)
+           maker    = MakerEnum.NAME_FIRST,
+           faker    = randomFirstName.first,
+           original = names[randomFirstName.first],
+           value    = randomFirstName.second,
+           wikiUrl  = getFandomUrl(randomFirstName.first, names[randomFirstName.first]!!, false)
         )
     }
 
     fun lastName(fakers: List<FakerEnum>?): DataTableItem {
         if (fakers.isNullOrEmpty()) {
             return DataTableItem(
-                MakerEnum.NAME_LAST,
-                null,
-                null,
-                dataFaker.name().lastName(),
-                null
+                maker    = MakerEnum.NAME_LAST,
+                faker    = null,
+                original = null,
+                value    = dataFaker.name().lastName(),
+                wikiUrl  = null
             )
         }
         val names = nameGenerator(fakers)
         val lastNames = getLastNamesOnly(names)
         val randomLastName = lastNames.toList().random()
         return DataTableItem(
-            MakerEnum.NAME_LAST,
-            randomLastName.first,
-            names[randomLastName.first],
-            randomLastName.second,
-            getFandomUrl(randomLastName.first, names[randomLastName.first]!!, false)
+           maker    = MakerEnum.NAME_LAST,
+           faker    = randomLastName.first,
+           original = names[randomLastName.first],
+           value    = randomLastName.second,
+           wikiUrl  = getFandomUrl(randomLastName.first, names[randomLastName.first]!!, false)
         )
     }
 
@@ -145,21 +145,21 @@ object NameGenerator {
         if (fakers.isNullOrEmpty()) {
             val randomCompany = Tech.companies.random()
             return DataTableItem(
-                MakerEnum.NAME_COMPANY,
-                FakerEnum.TECH,
-                randomCompany,
-                randomCompany,
-                null
+               maker    = MakerEnum.NAME_COMPANY,
+               faker    = FakerEnum.TECH,
+               original = randomCompany,
+               value    = randomCompany,
+               wikiUrl  = null
             )
         }
         val names = companyGenerator(fakers)
         val name = names.entries.random()
         return DataTableItem(
-            MakerEnum.NAME_COMPANY,
-            name.key,
-            name.value,
-            name.value,
-            ""
+           maker    = MakerEnum.NAME_COMPANY,
+           faker    = name.key,
+           original = name.value,
+           value    = name.value,
+           wikiUrl  = ""
         )
     }
 }
