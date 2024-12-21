@@ -4,7 +4,7 @@ import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.fakers.Tech
 import elias.fakerMaker.fakers.tvshow.*
 
-class LocationGenerator {
+object LocationGenerator {
     private fun location(fakers: List<FakerEnum>): Map<FakerEnum, String> {
         val namesMap = emptyMap<FakerEnum, String>().toMutableMap()
         for (faker in fakers) {

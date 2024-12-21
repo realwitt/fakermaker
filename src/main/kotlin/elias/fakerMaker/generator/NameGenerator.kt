@@ -11,7 +11,7 @@ import elias.fakerMaker.fakers.videogame.CallOfDuty
 import net.datafaker.Faker
 import kotlin.random.Random
 
-class NameGenerator {
+object NameGenerator {
     private val dataFaker: Faker = Faker()
     private val rand: Random = Random
 

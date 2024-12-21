@@ -10,7 +10,7 @@ data class DataTableItem(
     val faker: FakerEnum? = FakerEnum.TECH,
     val original: String? = Tech.people.random(),
     val value: String = original?.split(" ")?.first() ?: "",
-    val hyperlink: String? = ""
+    val wikiUrl: String? = ""
 ) {
     override fun toString(): String {
         return """
@@ -19,7 +19,7 @@ data class DataTableItem(
             |    maker     = ${maker?.name ?: "null"},
             |    original  = ${original?.let { "'$it'" } ?: "null"},
             |    value     = '$value',
-            |    hyperlink = ${hyperlink?.let { "'$it'" } ?: "null"}
+            |    wikiUrl   = ${wikiUrl?.let { "'$it'" } ?: "null"}
             |}
         """.trimMargin()
     }

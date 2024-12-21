@@ -4,7 +4,7 @@ import elias.fakerMaker.dto.AmericaData
 import elias.fakerMaker.dto.DataTableItem
 import elias.fakerMaker.enums.MakerEnum
 import elias.fakerMaker.enums.StatesEnum
-import elias.fakerMaker.utils.RandomEnum
+import elias.fakerMaker.utils.WikiUtil
 import jakarta.annotation.PostConstruct
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -16,8 +16,8 @@ import org.springframework.stereotype.Component
 
 @Component
 object AmericaGenerator {
-    private val logger = KotlinLogging.logger {}
     private lateinit var americaData: AmericaData
+    private val logger = KotlinLogging.logger {}
     private val excludedStates = setOf(
         StatesEnum.state
     )
@@ -38,19 +38,20 @@ object AmericaGenerator {
     }
 
     fun state(): DataTableItem {
+        val state = StatesEnum.entries
+            .filter { it !in excludedStates }
+            .random()
+
         return DataTableItem(
             MakerEnum.STATE,
             null,
             null,
-            StatesEnum.entries
-                .filter { it !in excludedStates }
-                .random().toString(),
-            null
+            state.toString(),
+            WikiUtil.createStateWikiLink(state),
         )
     }
 
     fun city(existingItems: List<DataTableItem>?): DataTableItem {
-
         val state = existingItems?.find { it.maker == MakerEnum.STATE }?.value?.let {
             StatesEnum.valueOf(it)
         } ?: StatesEnum.entries
@@ -62,36 +63,52 @@ object AmericaGenerator {
         return DataTableItem(
             MakerEnum.CITY,
             null,
-            null,
+            "$city, $state",
             city,
-            null
+            WikiUtil.createCityWikiLink(state, city),
         )
     }
 
-    // todo: we need to rework the dataset bc it's getting rid of dup zip codes (see Wyckoff, NH)
     fun zip(existingItems: List<DataTableItem>?): DataTableItem {
-        // Get state - either from existing items or random
-        val state = existingItems?.find { it.maker == MakerEnum.STATE }?.value?.let {
-            StatesEnum.valueOf(it)
-        } ?: StatesEnum.entries
-            .filter { it !in excludedStates }
-            .random()
+        val state: StatesEnum?
+        val city: String?
 
-        // Get city - either from existing items or random for the selected state
-        val city = existingItems?.find { it.maker == MakerEnum.CITY }?.value
-            ?: americaData[state]?.entries?.random()?.key
-            ?: throw IllegalStateException("No cities found for state $state")
+        val zip = when {
+            // Case 1: City exists -> extract state and city from wiki link
+            existingItems?.find { it.maker == MakerEnum.CITY }?.wikiUrl != null -> {
+                val cityWikiUrl = existingItems.find { it.maker == MakerEnum.CITY }?.run {
+                    wikiUrl ?: throw IllegalStateException("City '$value' hyperlink was somehow null")
+                } ?: throw IllegalStateException("City not found")
 
-        // Get random zip code for the state/city combination
-        val zip = americaData[state]?.get(city)?.zipCodes?.random()
-            ?: throw IllegalStateException("No zip codes found for $city, $state")
+                val (extractedState, extractedCity) = WikiUtil.extractCityWikiValues(cityWikiUrl)
+                state = extractedState
+                city = extractedCity
+                americaData[state]?.get(city)?.zipCodes?.random() ?: run {
+                    throw IllegalStateException("City '${city}' somehow has no zipcode")
+                }
+            }
+
+            // Case 2: State exists (or if not, random state) -> random city from state -> random zip
+            else -> {
+                val stateValue = existingItems?.find { it.maker == MakerEnum.STATE }?.value ?: StatesEnum.entries
+                    .filter { it !in excludedStates }
+                    .random().toString()
+                state = StatesEnum.valueOf(stateValue)
+                city = americaData[state]?.entries?.random()?.key ?: run {
+                    throw IllegalStateException("State $stateValue is somehow has no cities")
+                }
+                americaData[state]?.get(city)?.zipCodes?.random() ?: run {
+                    throw IllegalStateException("State $city somehow has no zip codes")
+                }
+            }
+        }
 
         return DataTableItem(
-            MakerEnum.ZIP,
+            maker = MakerEnum.ZIP,
             null,
-            null,
-            zip,
-            null
+            "$city, $state $zip",
+            value = zip,
+            wikiUrl = WikiUtil.createCityWikiLink(state, city)
         )
     }
 

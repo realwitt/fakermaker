@@ -9,10 +9,9 @@ import elias.fakerMaker.fakers.tvshow.*
 import net.datafaker.Faker
 import kotlin.random.Random
 
-class EmailGenerator {
+object EmailGenerator {
     private val dataFaker: Faker = Faker()
     private val rand: Random = Random
-    private val nameGenerator: NameGenerator = NameGenerator()
 
     private fun generateRandomEmailLocalPart(dataTableItems: List<DataTableItem>?): String {
         val localPartNames = mutableListOf<String>()
@@ -142,7 +141,7 @@ class EmailGenerator {
             if (randomInt == 0) customDomainName.first else null,  // faker
             if (randomInt == 0 && customDomainName.first != null) customDomainName.second else null,  // original
             "${localPartName.lowercase()}@${randomFullDomainName[randomInt].lowercase()}",  // value
-            if (randomInt == 0) customDomainName.first?.let { nameGenerator.getFandomUrl(it, customDomainName.second, false)} else null  // hyperlink
+            if (randomInt == 0) customDomainName.first?.let { NameGenerator.getFandomUrl(it, customDomainName.second, false)} else null  // hyperlink
         )
     }
 

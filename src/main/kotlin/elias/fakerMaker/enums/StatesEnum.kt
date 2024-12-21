@@ -65,5 +65,5 @@ enum class StatesEnum(val fullName: String) {
     PR("Puerto Rico"),
     PW("Palau"),
     VI("Virgin Islands"),
-    state("weird edge case for data")
+    state("weird edge case present in postal data... it's filtered out")
 }
