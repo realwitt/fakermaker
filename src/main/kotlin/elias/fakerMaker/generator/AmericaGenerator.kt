@@ -49,7 +49,7 @@ object AmericaGenerator {
             StatesEnum.valueOf(it)
         } ?: RandomEnum.randomEnum<StatesEnum>()
 
-        val cityValue = americaData.data[state]?.entries?.random()?.key ?: ""
+        val cityValue = americaData[state]?.entries?.random()?.key ?: ""
 
         return DataTableItem(
             MakerEnum.CITY,
