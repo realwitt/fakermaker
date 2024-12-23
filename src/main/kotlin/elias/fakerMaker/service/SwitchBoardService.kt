@@ -24,7 +24,8 @@ class SwitchBoardService {
                 maker.name == "STATE" -> 1
                 maker.name == "CITY" -> 2
                 maker.name == "ZIP" -> 3
-                else -> 4
+                maker.name == "PHONE" -> 4
+                else -> 5
             }
         }
         val dataTableRows = mutableListOf<MutableList<DataTableItem>>()
@@ -44,7 +45,7 @@ class SwitchBoardService {
                     MakerEnum.PHONE -> dataTableRow.add(AmericaGenerator.phone(dataTableRow))
                     MakerEnum.ADDRESS -> dataTableRow.add(DataTableItem())
                     MakerEnum.ADDRESS_2 -> dataTableRow.add(DataTableItem())
-                    MakerEnum.EMAIL -> dataTableRow.add(EmailGenerator.generateRandomEmail(dataTableRow))
+                    MakerEnum.EMAIL -> dataTableRow.add(EmailGenerator.email(dataTableRow))
                     MakerEnum.NUMBER_PRICE -> dataTableRow.add(DataTableItem())
                     MakerEnum.NUMBER_REGULAR -> dataTableRow.add(DataTableItem())
                     MakerEnum.DATE -> dataTableRow.add(DataTableItem())
@@ -69,13 +70,14 @@ ${let {
         }}${String.format("%.2f", totalTime / 1000.0)} seconds total time ($totalTime ms)
 ${let {
             val avgSeconds = totalTime.toFloat() / (1000.0 * armySize)
+            val avgMillis = totalTime.toDouble() / armySize
             val formatted = String.format("%.2f", avgSeconds)
             when {
-                avgSeconds < 0.01 -> "<0.01 second"
-                formatted.toDouble() == avgSeconds -> "$formatted second${if (avgSeconds > 1) "s" else ""}"
-                else -> "~${formatted} second${if (avgSeconds > 1) "s" else ""}"
+                avgSeconds < 0.01 -> "<0.01 second average row creation time (${String.format("%.3f", avgMillis)} ms)"
+                formatted.toDouble() == avgSeconds -> "$formatted second${if (avgSeconds > 1) "s" else ""} average row creation time (${String.format("%.3f", avgMillis)} ms)"
+                else -> "~${formatted} second${if (avgSeconds > 1) "s" else ""} average row creation time (${String.format("%.3f", avgMillis)} ms)"
             }
-        }} average row creation time (${String.format("%.2f", totalTime.toDouble() / armySize)} ms)
+        }}
 Fakers:${"\n"}${fakers.mapIndexed { index, faker ->
             "\t${index + 1}. ${faker.prettyName}${if (index != fakers.lastIndex) "\n" else ""}"
         }.joinToString("")}
@@ -83,7 +85,7 @@ Makers:${"\n"}${makers.mapIndexed { index, maker ->
             "\t${index + 1}. ${maker.prettyName}${if (index != makers.lastIndex) "\n" else ""}"
         }.joinToString("")}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    """.trimIndent()}
+""".trimIndent()}
 
         return dataTableRows
     }

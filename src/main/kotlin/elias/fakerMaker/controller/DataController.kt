@@ -18,7 +18,7 @@ class DataController {
     @PostMapping("/schema/{count}")
     fun getFakeData(@PathVariable count: Int): List<List<DataTableItem>> {
         val fakers = listOf(FakerEnum.GRAVITY_FALLS, FakerEnum.KING_OF_THE_HILL, FakerEnum.HARRY_POTTER)
-        val makers = listOf(MakerEnum.CITY, MakerEnum.ZIP, MakerEnum.STATE, MakerEnum.PHONE)
+        val makers = listOf(MakerEnum.CITY, MakerEnum.ZIP, MakerEnum.STATE)
 
         return switchBoardService.buildMeAnArmy(count, fakers, makers)
     }

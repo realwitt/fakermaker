@@ -13,4 +13,6 @@ class AmericaServiceTest {
     // if they have a state and a zip, do they belong together
 
     // if they have a state and a city, do they belong together
+
+    // if no area codes for the state (see "Koror, PW")
 }

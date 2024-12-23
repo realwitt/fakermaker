@@ -1,5 +1,6 @@
 package elias.fakerMaker.utils
 
+import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.StatesEnum
 import mu.KotlinLogging
 
@@ -16,16 +17,25 @@ object WikiUtil {
         return "https://en.wikipedia.org/wiki/${city.replace(" ", "_")},_${state.fullName.replace(" ", "_")}"
     }
 
-    fun extractCityWikiValues(wikiUrl: String): Pair<StatesEnum, String> {
-        val segment = wikiUrl.substringAfterLast("/")
-        val (city, state) = segment.split(",_", limit = 2)
+    fun createPhoneWikiLink(areaCode: String): String {
+        return "https://www.allareacodes.com/${areaCode}"
+    }
 
-        val stateEnum = StatesEnum.entries.find { it.fullName == state.replace("_", " ") }
-            ?: run {
-                logger.error { "Failed to parse state from wiki URL: $wikiUrl" }
-                throw IllegalArgumentException("No matching state found for: $state")
-            }
-
-        return Pair(stateEnum, city.replace("_", " "))
+    fun createFandomWikiLink(fakerEnum: FakerEnum, fullName: String, concatEntireName: Boolean): String {
+        // allow more fine-grained control over which wiki we want to pull from
+        // ...and bc fandom's Silicon Valley link is "silicon-valley" instead of "siliconvalley" -_-
+        val fandomBaseUrl = when (fakerEnum) {
+            FakerEnum.SILICON_VALLEY -> "silicon-valley.fandom.com/wiki/"
+            FakerEnum.GAME_OF_THRONES -> "awoiaf.westeros.org/index.php/"
+            else -> "${fakerEnum.toString().replace("_", "").lowercase()}.fandom.com/wiki/"
+        }
+        val firstName = fullName.split(" ").first()
+        val lastName = fullName.split(" ").last()
+        // unlikes names where we only want first and last, for locations we want the whole name
+        val fandomQueryParam = when (concatEntireName) {
+            true -> fullName.replace(" ", "_")
+            false -> {if (firstName == lastName) firstName else "${firstName}_${lastName}"}
+        }
+        return "https://$fandomBaseUrl$fandomQueryParam"
     }
 }
