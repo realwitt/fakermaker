@@ -4,22 +4,21 @@ import elias.fakerMaker.dto.DataTableItem
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.MakerEnum
 import elias.fakerMaker.fakers.*
-import elias.fakerMaker.fakers.book.HarryPotter
-import elias.fakerMaker.fakers.book.ThroneOfGlass
+import elias.fakerMaker.fakers.books.*
+import elias.fakerMaker.fakers.movies.BackToTheFuture
+import elias.fakerMaker.fakers.sports.Baseball
+import elias.fakerMaker.fakers.sports.Basketball
 import elias.fakerMaker.fakers.tvshow.*
 import elias.fakerMaker.fakers.videogame.CallOfDuty
 import elias.fakerMaker.utils.WikiUtil
-import net.datafaker.Faker
 
 object NameGenerator {
-    private val dataFaker: Faker = Faker()
     private val characterNameFakers = listOf(
         FakerEnum.BACK_TO_THE_FUTURE,
         FakerEnum.BASEBALL,
         FakerEnum.BASKETBALL,
         FakerEnum.BREAKING_BAD,
         FakerEnum.CALL_OF_DUTY,
-        FakerEnum.CLASH_OF_CLANS,
         FakerEnum.DOCTOR_WHO,
         FakerEnum.GAME_OF_THRONES,
         FakerEnum.GRAVITY_FALLS,
@@ -31,18 +30,53 @@ object NameGenerator {
         FakerEnum.RICK_AND_MORTY,
         FakerEnum.SILICON_VALLEY,
         FakerEnum.TECH,
+        FakerEnum.THE_HOBBIT,
         FakerEnum.THE_OFFICE,
         FakerEnum.THRONE_OF_GLASS,
     )
+
+    private val staticCharacterLists = mapOf(
+        FakerEnum.BACK_TO_THE_FUTURE to BackToTheFuture.characters.toList(),
+        FakerEnum.BASEBALL to Baseball.players.toList(),
+        FakerEnum.BASKETBALL to Basketball.players.toList(),
+        FakerEnum.BREAKING_BAD to BreakingBad.characters.toList(),
+        FakerEnum.CALL_OF_DUTY to CallOfDuty.operators.toList(),
+        FakerEnum.DOCTOR_WHO to DoctorWho.characters.toList(),
+        FakerEnum.GAME_OF_THRONES to GameOfThrones.characters.toList(),
+        FakerEnum.GRAVITY_FALLS to GravityFalls.characters.toList(),
+        FakerEnum.HARRY_POTTER to HarryPotter.characters.toList(),
+        FakerEnum.KING_OF_THE_HILL to KingOfTheHill.characters.toList(),
+        FakerEnum.LORD_OF_THE_RINGS to LordOfTheRings.characters.toList(),
+        FakerEnum.MONK to Monk.characters.toList(),
+        FakerEnum.PARKS_AND_REC to ParksAndRec.characters.toList(),
+        FakerEnum.RICK_AND_MORTY to RickAndMorty.characters.toList(),
+        FakerEnum.SILICON_VALLEY to SiliconValley.characters.toList(),
+        FakerEnum.TECH to Tech.people.toList(),
+        FakerEnum.THE_HOBBIT to TheHobbit.characters.toList(),
+        FakerEnum.THE_OFFICE to TheOffice.characters.toList(),
+        FakerEnum.THRONE_OF_GLASS to ThroneOfGlass.characters.toList(),
+    )
+
     private val companyNameFakers = listOf(
         FakerEnum.GRAVITY_FALLS,
         FakerEnum.HARRY_POTTER,
         FakerEnum.KING_OF_THE_HILL,
         FakerEnum.MONK,
-        FakerEnum.SILICON_VALLEY,
         FakerEnum.PARKS_AND_REC,
+        FakerEnum.SILICON_VALLEY,
         FakerEnum.TECH,
         FakerEnum.THE_OFFICE,
+    )
+
+    private val staticCompanyLists = mapOf(
+        FakerEnum.GRAVITY_FALLS to GravityFalls.companies.toList(),
+        FakerEnum.HARRY_POTTER to HarryPotter.companies.toList(),
+        FakerEnum.KING_OF_THE_HILL to KingOfTheHill.companies.toList(),
+        FakerEnum.MONK to Monk.companies.toList(),
+        FakerEnum.PARKS_AND_REC to ParksAndRec.companies.toList(),
+        FakerEnum.SILICON_VALLEY to SiliconValley.companies.toList(),
+        FakerEnum.TECH to Tech.companies.toList(),
+        FakerEnum.THE_OFFICE to TheOffice.companies.toList(),
     )
 
 
@@ -54,35 +88,7 @@ object NameGenerator {
         return characterNameSwitchBoard(fakers)
     }
 
-    private fun characterNameSwitchBoard(fakers: List<FakerEnum>): Map<FakerEnum, String> {
-        val generatedNames = fakers.mapNotNull { faker ->
-            when (faker) {
-                FakerEnum.BACK_TO_THE_FUTURE -> faker to dataFaker.backToTheFuture().character()
-                FakerEnum.BASEBALL -> faker to dataFaker.baseball().players()
-                FakerEnum.BASKETBALL -> faker to dataFaker.basketball().players()
-                FakerEnum.BREAKING_BAD -> faker to dataFaker.breakingBad().character()
-                FakerEnum.CALL_OF_DUTY -> faker to CallOfDuty.operators.random()
-                FakerEnum.CLASH_OF_CLANS -> faker to dataFaker.clashOfClans().troop()
-                FakerEnum.DOCTOR_WHO -> faker to dataFaker.doctorWho().character()
-                FakerEnum.GAME_OF_THRONES -> faker to dataFaker.gameOfThrones().character()
-                FakerEnum.GRAVITY_FALLS -> faker to GravityFalls.characters.random()
-                FakerEnum.HARRY_POTTER -> faker to dataFaker.harryPotter().character()
-                FakerEnum.KING_OF_THE_HILL -> faker to KingOfTheHill.characters.random()
-                FakerEnum.LORD_OF_THE_RINGS -> faker to dataFaker.lordOfTheRings().character()
-                FakerEnum.MONK -> faker to Monk.characters.random()
-                FakerEnum.PARKS_AND_REC -> faker to ParksAndRec.characters.random()
-                FakerEnum.RICK_AND_MORTY -> faker to dataFaker.rickAndMorty().character()
-                FakerEnum.SILICON_VALLEY -> faker to dataFaker.siliconValley().character()
-                FakerEnum.TECH -> faker to Tech.people.random()
-                FakerEnum.THE_OFFICE -> faker to TheOffice.characters.random()
-                FakerEnum.THRONE_OF_GLASS -> faker to ThroneOfGlass.characters.random()
-                else -> null
-            }
-        }.toMap()
-
-        return generatedNames.ifEmpty { createCharacterName(null) }
-    }
-
+    // company logic
     private fun createCompanyName(fakers: List<FakerEnum>?): Map<FakerEnum, String> {
         if (fakers.isNullOrEmpty()) {
             val faker = companyNameFakers.random()
@@ -91,37 +97,69 @@ object NameGenerator {
         return companySwitchboard(fakers)
     }
 
-    private fun companySwitchboard(fakers: List<FakerEnum>): Map<FakerEnum, String> {
-        val generatedNames = fakers.mapNotNull { faker ->
-            when (faker) {
-                FakerEnum.GRAVITY_FALLS -> faker to GravityFalls.companies.random()
-                FakerEnum.HARRY_POTTER -> faker to HarryPotter.companies.random()
-                FakerEnum.KING_OF_THE_HILL -> faker to KingOfTheHill.companies.random()
-                FakerEnum.MONK -> faker to Monk.companies.random()
-                FakerEnum.SILICON_VALLEY -> faker to dataFaker.siliconValley().company()
-                FakerEnum.PARKS_AND_REC -> faker to ParksAndRec.companies.random()
-                FakerEnum.TECH -> faker to Tech.companies.random()
-                FakerEnum.THE_OFFICE -> faker to TheOffice.companies.random()
-                else -> null
+    private fun characterNameSwitchBoard(fakers: List<FakerEnum>): Map<FakerEnum, String> {
+        val result = buildMap {
+            for (faker in fakers) {
+                staticCharacterLists[faker]?.let { list ->
+                    put(faker, list.random())
+                }
             }
-        }.toMap()
-
-        return generatedNames.ifEmpty { createCompanyName(null) }
+        }
+        return result.ifEmpty {
+            val randomFaker = characterNameFakers.random()
+            staticCharacterLists[randomFaker]?.let { list ->
+                mapOf(randomFaker to list.random())
+            } ?: emptyMap()
+        }
     }
 
+    private fun companySwitchboard(fakers: List<FakerEnum>): Map<FakerEnum, String> {
+        val result = buildMap {
+            for (faker in fakers) {
+                staticCompanyLists[faker]?.let { list ->
+                    put(faker, list.random())
+                }
+            }
+        }
+        return result.ifEmpty {
+            val randomFaker = companyNameFakers.random()
+            staticCompanyLists[randomFaker]?.let { list ->
+                mapOf(randomFaker to list.random())
+            } ?: emptyMap()
+        }
+    }
+
+    private val TITLE_PREFIXES = setOf("The", "Mrs.", "Mr.")
     private fun getFirstNamesOnly(names: Map<FakerEnum, String>): Map<FakerEnum, String> = names.mapValues { (_, name) ->
-        name.split(" ")
-            .filterNot { it in setOf("The", "Mrs.", "Mr.") }
-            .firstOrNull()
-            .orEmpty()
-    }
+        if (name.isEmpty()) return@mapValues ""
 
+        // Find first space
+        val firstSpaceIndex = name.indexOf(' ')
+        if (firstSpaceIndex == -1) return@mapValues name
+
+        // Get first word and check if it's a title
+        val firstWord = name.substring(0, firstSpaceIndex)
+        if (firstWord !in TITLE_PREFIXES) return@mapValues firstWord
+
+        // If first word was a title, get the next word
+        val secondSpaceIndex = name.indexOf(' ', firstSpaceIndex + 1)
+        if (secondSpaceIndex == -1) {
+            // Only one word after title
+            return@mapValues name.substring(firstSpaceIndex + 1)
+        }
+        // Return word after title
+        name.substring(firstSpaceIndex + 1, secondSpaceIndex)
+    }
 
     private fun getLastNamesOnly(names: Map<FakerEnum, String>): Map<FakerEnum, String> = names.mapValues { (_, name) ->
-        name.split(" ")
-            .filterNot { it in setOf("The", "Mrs.", "Mr.") }
-            .lastOrNull()
-            .orEmpty()
+        if (name.isEmpty()) return@mapValues ""
+
+        // Start from end and find last space
+        val lastSpaceIndex = name.lastIndexOf(' ')
+        if (lastSpaceIndex == -1) return@mapValues name
+
+        // Get the last word
+        name.substring(lastSpaceIndex + 1)
     }
 
 

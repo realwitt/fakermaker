@@ -1,9 +1,9 @@
 package elias.fakerMaker.controller
 
-import elias.fakerMaker.dto.DataTableItem
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.MakerEnum
-import elias.fakerMaker.generator.SwitchBoardService
+import elias.fakerMaker.service.SwitchBoardService
+import kotlinx.coroutines.reactor.asFlux
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -13,15 +13,17 @@ val switchBoardService = SwitchBoardService()
 
 @RestController
 @RequestMapping("/api/faker")
-class DataController {
-
+class DataController(
+    private val switchBoardService: SwitchBoardService
+) {
     @PostMapping("/schema/{count}")
-    fun getFakeData(@PathVariable count: Int): List<List<DataTableItem>> {
-        val fakers = listOf(FakerEnum.GRAVITY_FALLS, FakerEnum.KING_OF_THE_HILL, FakerEnum.HARRY_POTTER)
-        val makers = listOf(MakerEnum.ADDRESS)
-
-        return switchBoardService.buildMeAnArmy(count, fakers, makers)
-    }
+    fun getFakeData(@PathVariable count: Int) = switchBoardService
+        .buildMeAnArmy(
+            count,
+            listOf(FakerEnum.GRAVITY_FALLS, FakerEnum.KING_OF_THE_HILL, FakerEnum.HARRY_POTTER),
+            listOf(MakerEnum.ADDRESS, MakerEnum.PHONE, MakerEnum.NAME_FIRST)
+        )
+        .asFlux()
 
     // For future use
     private fun getRandomFakers(): List<FakerEnum> {
@@ -35,6 +37,4 @@ class DataController {
             .shuffled()
             .take((1..MakerEnum.entries.size).random())
     }
-
-
 }

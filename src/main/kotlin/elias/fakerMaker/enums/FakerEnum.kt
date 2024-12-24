@@ -22,5 +22,6 @@ enum class FakerEnum(@JsonValue val prettyName: String) {
     SILICON_VALLEY("Silicon Valley"),
     TECH("Tech"),
     THE_OFFICE("The Office"),
+    THE_HOBBIT("The Hobbit"),
     THRONE_OF_GLASS("Throne of Glass"),
 }

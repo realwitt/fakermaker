@@ -3,10 +3,10 @@ package elias.fakerMaker.generator
 import elias.fakerMaker.dto.AmericaData
 import elias.fakerMaker.dto.DataTableItem
 import elias.fakerMaker.dto.Influencer
+import elias.fakerMaker.dto.LocationData
 import elias.fakerMaker.enums.MakerEnum
 import elias.fakerMaker.enums.StatesEnum
 import elias.fakerMaker.fakers.Address
-import elias.fakerMaker.fakers.history.America
 import elias.fakerMaker.utils.WikiUtil
 import jakarta.annotation.PostConstruct
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -50,6 +50,25 @@ object AmericaGenerator {
             throw e
         }
     }
+    private val citiesWithAreaCodes: Map<StatesEnum, List<Pair<String, LocationData>>> by lazy {
+        americaData
+            .mapValues { (_, cities) ->
+                cities.entries
+                    .filter { it.value.areaCodes.isNotEmpty() }
+                    .map { it.key to it.value }
+                    .toList()
+            }
+            .filterValues { it.isNotEmpty() }
+    }
+
+    private fun generateRandomStateCityAreaCode(): Triple<StatesEnum, String, String> {
+        val state = citiesWithAreaCodes.keys.random()
+
+        val (city, locationData) = citiesWithAreaCodes[state]?.random()
+            ?: throw IllegalStateException("No cities found with area codes for state $state")
+
+        return Triple(state, city, locationData.areaCodes.random())
+    }
 
     private fun generateRandomStateCityZip(): Triple<StatesEnum, String, String> {
         val state = StatesEnum.entries
@@ -62,19 +81,6 @@ object AmericaGenerator {
             throw IllegalStateException("City '$city' somehow has no zip code")
         }
         return Triple(state, city, zip)
-    }
-
-    private fun generateRandomStateCityAreaCode(): Triple<StatesEnum, String, String> {
-        val state = validStates.random()
-
-        repeat(3) {
-            val cityEntry = americaData[state]?.entries?.random()
-            if (cityEntry?.value?.areaCodes?.isNotEmpty() == true) {
-                return Triple(state, cityEntry.key, cityEntry.value.areaCodes.random())
-            }
-        }
-
-        throw IllegalStateException("Unable to find any state/city with area codes after multiple attempts")
     }
 
     fun state(): DataTableItem {
@@ -302,82 +308,82 @@ object AmericaGenerator {
         )
     }
 
+    // Pre-compute the common components
+    private val streetComponents = object {
+        val suffixes = Address.streetSuffixed.map { it.abbreviation to it.fullName }
+        val trees = Address.treeNames
+        val gems = Address.gemTerms
+        val terrain = Address.terrainFeatures.map { it.abbreviation to it.fullName }
+        val landmarks = Address.landmarkTerms.map { it.abbreviation to it.fullName }
+        val directions = Address.cardinalDirections.map { it.abbreviation to it.fullName }
+        val pleasant = Address.pleasantRoadAdjectives
+        val patriotic = elias.fakerMaker.fakers.America.patrioticTerms
+        val union = elias.fakerMaker.fakers.America.union.map { it.split(" ").last() }
+        val confederate = elias.fakerMaker.fakers.America.confederates.map { it.split(" ").last() }
+        val food = elias.fakerMaker.fakers.America.food
+        val firearms = elias.fakerMaker.fakers.America.firearmTerms
+        val firearmTypes = elias.fakerMaker.fakers.America.firearmTypes
+        val diseases = elias.fakerMaker.fakers.America.disease
+        val presidents = elias.fakerMaker.fakers.America.presidents.map { it.split(" ").last() }
+    }
+
+    private fun getSuffix(useAbbrev: Boolean): String =
+        streetComponents.suffixes.random().let { if (useAbbrev) it.first else it.second }
+
+    private fun getTerrain(useAbbrev: Boolean): String =
+        streetComponents.terrain.random().let { if (useAbbrev) it.first else it.second }
+
+    private fun getLandmark(useAbbrev: Boolean): String =
+        streetComponents.landmarks.random().let { if (useAbbrev) it.first else it.second }
+
+    private fun getDirection(useAbbrev: Boolean): String =
+        streetComponents.directions.random().let { if (useAbbrev) it.first else it.second }
+
     fun address(): DataTableItem {
-        val shouldUseAbbreviation = Random.nextBoolean()
         val numberCount = when (Random.nextInt(3)) {
             0 -> Random.nextInt(1, 10)
             1 -> Random.nextInt(100, 999)
             else -> Random.nextInt(1000, 9999)
         }.toString()
 
-        val patterns = listOf(
-            // Basic Tree Streets (e.g., "123 Maple Dr.")
-            { "$numberCount ${Address.treeNames.random()} ${Address.streetSuffixed.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
-            // Patriotic Streets (e.g., "123 Liberty Ave.")
-            { "$numberCount ${America.patrioticTerms.random()} ${Address.streetSuffixed.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
+        val useAbbrev = Random.nextBoolean()
 
-            // Gem Streets (e.g., "123 Ruby Rd.")
-            { "$numberCount ${Address.gemTerms.random()} ${Address.streetSuffixed.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
-
-            // Union General Streets (e.g., "123 General Sherman Blvd.")
-            { "$numberCount General ${America.union.random().split(" ").last()} ${Address.streetSuffixed.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
-            // Confederate Streets (e.g., "123 Lee Ave.")
-            { "$numberCount ${America.confederates.random().split(" ").last()} ${Address.streetSuffixed.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
-
-            // Nature Combinations (e.g., "123 Oak Valley Dr.")
-            { "$numberCount ${Address.treeNames.random()} ${Address.terrainFeatures.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
-            // Gem + Terrain (e.g., "123 Ruby Ridge Rd.")
-            { "$numberCount ${Address.gemTerms.random()} ${Address.terrainFeatures.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
-            // Pleasant + Terrain (e.g., "123 Pleasant Valley")
-            { "$numberCount ${Address.pleasantRoadAdjectives.random()} ${Address.terrainFeatures.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
-
-            // Tree + Landmark (e.g., "123 Oak Mill")
-            { "$numberCount ${Address.treeNames.random()} ${Address.landmarkTerms.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
-            // Patriotic + Landmark (e.g., "123 Liberty Square")
-            { "$numberCount ${America.patrioticTerms.random()} ${Address.landmarkTerms.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
-
-            // Directional + Tree (e.g., "123 N. Oak St.")
-            { "$numberCount ${Address.cardinalDirections.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }} ${Address.treeNames.random()} ${Address.streetSuffixed.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
-            // Directional + Pleasant (e.g., "123 S. Pleasant Valley")
-            { "$numberCount ${Address.cardinalDirections.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }} ${Address.pleasantRoadAdjectives.random()} ${Address.terrainFeatures.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
-
-            // Food Streets (e.g., "123 Apple Pie Ln.")
-            { "$numberCount ${America.foodTerms.random()} ${Address.streetSuffixed.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
-            // Food + Landmark (e.g., "123 Barbecue Station")
-            { "$numberCount ${America.foodTerms.random()} ${Address.landmarkTerms.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
-
-            // Firearm Streets (e.g., "123 Winchester Rd.")
-            { "$numberCount ${America.firearmTerms.random()} ${Address.streetSuffixed.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
-            // Firearm Type + Landmark (e.g., "123 Rifle Range")
-            { "$numberCount ${America.firearmTypes.random()} ${Address.landmarkTerms.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
-
-            // Medical Streets (e.g., "123 Diabetes Ln.")
-            { "$numberCount ${America.disease.random()} ${Address.streetSuffixed.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
-            // Disease + Terrain (e.g., "123 Heart Attack Valley")
-            { "$numberCount ${America.disease.random()} ${Address.terrainFeatures.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
-
-            // Presidential Streets (e.g., "123 Washington Ave.")
-            { "$numberCount ${America.presidents.random().split(" ").last()} ${Address.streetSuffixed.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" },
-
-            // Common Triple Combinations (e.g., "123 Old North Mill Rd.")
-            { "$numberCount Old ${Address.cardinalDirections.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }} ${Address.landmarkTerms.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }} ${Address.streetSuffixed.random().let{ if (shouldUseAbbreviation) it.abbreviation else it.fullName }}" }
-        )
-        // Select and execute one random pattern
-        val address = patterns.random().invoke()
+        val addressString = when (Random.nextInt(19)) {
+            0 -> "$numberCount ${streetComponents.trees.random()} ${getSuffix(useAbbrev)}"
+            1 -> "$numberCount ${streetComponents.patriotic.random()} ${getSuffix(useAbbrev)}"
+            2 -> "$numberCount ${streetComponents.gems.random()} ${getSuffix(useAbbrev)}"
+            3 -> "$numberCount General ${streetComponents.union.random()} ${getSuffix(useAbbrev)}"
+            4 -> "$numberCount ${streetComponents.confederate.random()} ${getSuffix(useAbbrev)}"
+            5 -> "$numberCount ${streetComponents.trees.random()} ${getTerrain(useAbbrev)}"
+            6 -> "$numberCount ${streetComponents.gems.random()} ${getTerrain(useAbbrev)}"
+            7 -> "$numberCount ${streetComponents.pleasant.random()} ${getTerrain(useAbbrev)}"
+            8 -> "$numberCount ${streetComponents.trees.random()} ${getLandmark(useAbbrev)}"
+            9 -> "$numberCount ${streetComponents.patriotic.random()} ${getLandmark(useAbbrev)}"
+            10 -> "$numberCount ${getDirection(useAbbrev)} ${streetComponents.trees.random()} ${getSuffix(useAbbrev)}"
+            11 -> "$numberCount ${getDirection(useAbbrev)} ${streetComponents.pleasant.random()} ${getTerrain(useAbbrev)}"
+            12 -> "$numberCount ${streetComponents.food.random()} ${getSuffix(useAbbrev)}"
+            13 -> "$numberCount ${streetComponents.food.random()} ${getLandmark(useAbbrev)}"
+            14 -> "$numberCount ${streetComponents.firearms.random()} ${getSuffix(useAbbrev)}"
+            15 -> "$numberCount ${streetComponents.firearmTypes.random()} ${getLandmark(useAbbrev)}"
+            16 -> "$numberCount ${streetComponents.diseases.random()} ${getSuffix(useAbbrev)}"
+            17 -> "$numberCount ${streetComponents.presidents.random()} ${getSuffix(useAbbrev)}"
+            else -> "$numberCount Old ${getDirection(useAbbrev)} ${getLandmark(useAbbrev)} ${getSuffix(useAbbrev)}"
+        }
 
         return DataTableItem(
-            maker         = MakerEnum.ADDRESS,
-            fakersUsed    = null,
+            maker = MakerEnum.ADDRESS_2,
+            fakersUsed = null,
             originalValue = null,
-            derivedValue  = address,
-            wikiUrl       = null,
-            influencedBy = null,
+            derivedValue = Address.address2.random().let { if (Random.nextBoolean()) it.abbreviation else it.fullName },
+            wikiUrl = null,
+            influencedBy = null
         )
     }
 
     fun address2(): DataTableItem {
+        // todo: the address 2 needs a number after it, random 1, 2, or 3 digit number
         return DataTableItem(
-            maker         = MakerEnum.ADDRESS,
+            maker         = MakerEnum.ADDRESS_2,
             fakersUsed    = null,
             originalValue = null,
             derivedValue  = Address.address2.random().let { if (Random.nextBoolean()) it.abbreviation else it.fullName },

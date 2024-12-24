@@ -1,4 +1,4 @@
-package elias.fakerMaker.fakers.history
+package elias.fakerMaker.fakers
 
 object America {
     val presidents = listOf(
@@ -322,7 +322,7 @@ object America {
         "Gameland"
     )
 
-    val foodTerms = listOf(
+    val food = listOf(
         // Classic American Mains
         "Burger",
         "Hotdog",
@@ -421,10 +421,8 @@ object America {
         "Grill",
         "Barbecue Pit",
         "Smokehouse",
-        "Kitchen",
         "Cafeteria",
         "Food Court",
-        "Pizzeria",
         "Steakhouse",
         "Creamery",
         "Bakery"
@@ -432,6 +430,7 @@ object America {
 
     val disease = listOf(
         "Obesity",
+        "ADHD",
         "Heart Attack",
         "Infarction",
         "Atherosclerosis",
@@ -445,6 +444,6 @@ object America {
         "Gout",
     )
 
-    
+
 
 }

@@ -50,6 +50,12 @@ dependencies {
 
     // https://mvnrepository.com/artifact/io.github.microutils/kotlin-logging-jvm
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
+
+    // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.1")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+
 }
 
 kotlin {
