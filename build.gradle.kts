@@ -42,8 +42,6 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    // https://mvnrepository.com/artifact/net.datafaker/datafaker
-    implementation("net.datafaker:datafaker:2.3.1")
 
     // https://mvnrepository.com/artifact/org.liquibase/liquibase-core
     implementation("org.liquibase:liquibase-core:4.29.1")
@@ -52,9 +50,12 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
 
     // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
+//    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.1")
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    // implementation("org.springframework.boot:spring-boot-starter-webflux")
+
+    // https://mvnrepository.com/artifact/de.siegmar/fastcsv
+    implementation("de.siegmar:fastcsv:3.4.0")
 
 }
 
