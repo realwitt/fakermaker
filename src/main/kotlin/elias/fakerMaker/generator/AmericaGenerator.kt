@@ -25,6 +25,7 @@ object AmericaGenerator {
     private val excludedStates = setOf(
         StatesEnum.state
     )
+    // todo there's a bug with phone numbers, we need to make sure we're pulling from these for phone number generation
     val validStates = setOf(
         StatesEnum.AK, StatesEnum.AL, StatesEnum.AZ, StatesEnum.AR, StatesEnum.CA, StatesEnum.CO,
         StatesEnum.CT, StatesEnum.DE, StatesEnum.FL, StatesEnum.GA, StatesEnum.HI, StatesEnum.ID,
@@ -371,12 +372,12 @@ object AmericaGenerator {
         }
 
         return DataTableItem(
-            maker = MakerEnum.ADDRESS_2,
-            fakersUsed = null,
+            maker         = MakerEnum.ADDRESS_2,
+            fakersUsed    = null,
             originalValue = null,
-            derivedValue = Address.address2.random().let { if (Random.nextBoolean()) it.abbreviation else it.fullName },
-            wikiUrl = null,
-            influencedBy = null
+            derivedValue  = addressString,
+            wikiUrl       = null,
+            influencedBy  = null
         )
     }
 
@@ -388,7 +389,7 @@ object AmericaGenerator {
             originalValue = null,
             derivedValue  = Address.address2.random().let { if (Random.nextBoolean()) it.abbreviation else it.fullName },
             wikiUrl       = null,
-            influencedBy = null,
+            influencedBy  = null,
         )
     }
 

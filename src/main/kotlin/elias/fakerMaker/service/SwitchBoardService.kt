@@ -12,15 +12,9 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import mu.KotlinLogging
-import net.datafaker.Faker
 import org.springframework.stereotype.Service
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.math.roundToInt
-import kotlin.random.Random
 
 @Service
 class SwitchBoardService {
@@ -31,6 +25,8 @@ class SwitchBoardService {
         this[MakerEnum.STATE] = { AmericaGenerator.state() }
         this[MakerEnum.CITY] = { state -> AmericaGenerator.city(state) }
         this[MakerEnum.ZIP] = { state -> AmericaGenerator.zip(state) }
+        this[MakerEnum.PHONE] = { state -> AmericaGenerator.phone(state) }
+        this[MakerEnum.EMAIL] = { items -> EmailGenerator.email(items) }
     }
 
     /**
@@ -40,27 +36,17 @@ class SwitchBoardService {
      * @param makers List of maker configurations
      * @return Flow of generated data rows
      */
-    fun buildMeAnArmy(armySize: Int, fakers: List<FakerEnum>, makers: List<MakerEnum>): Flow<List<DataTableItem>> = channelFlow {
+    fun buildDataTable(armySize: Int, fakers: List<FakerEnum>, makers: List<MakerEnum>): Flow<List<DataTableItem>> = channelFlow {
         val startTime = System.nanoTime()
         val performanceTracker = PerformanceTracker(armySize, makers.size, fakers, makers)
 
-        // Sort makers to maintain consistent state generation
-        val sortedMakers = makers.sortedBy { maker ->
-            when {
-                maker.name.contains("NAME") -> 0
-                maker.name == "STATE" -> 1
-                maker.name == "CITY" -> 2
-                maker.name == "ZIP" -> 3
-                maker.name == "PHONE" -> 4
-                else -> 5
-            }
-        }
+        val sortedMakers = sortMakers(makers)
 
         coroutineScope {
             // Generate rows concurrently
             val generatedRows = (0 until armySize).map {
                 async(Dispatchers.Default) {
-                    generateRow(sortedMakers, fakers)
+                    generateRow(sortedMakers, fakers) { item -> item }
                 }
             }.awaitAll()
 
@@ -73,12 +59,58 @@ class SwitchBoardService {
     }
 
     /**
-     * Generates a single row of data
-     * @param makers Sorted list of makers to generate data for
+     * Generates CSV data with specified configurations
+     * @param armySize Number of rows to generate (max 10,000)
+     * @param makers List of maker configurations
      * @param fakers List of faker configurations
-     * @return List of generated DataTableItems
+     * @return CSV formatted string
      */
-    private fun generateRow(makers: List<MakerEnum>, fakers: List<FakerEnum>): List<DataTableItem> {
+    suspend fun buildCsv(armySize: Int, makers: List<MakerEnum>, fakers: List<FakerEnum>): String {
+        val startTime = System.nanoTime()
+        val performanceTracker = PerformanceTracker(armySize, makers.size, fakers, makers)
+
+        val sanitizedSize = minOf(armySize, 10_000)
+        val sortedMakers = sortMakers(makers)
+
+        return buildString {
+            // Add header
+            appendLine(sortedMakers.joinToString(",") { it.name })
+
+            coroutineScope {
+                val generatedRows = (0 until sanitizedSize).map {
+                    async(Dispatchers.Default) {
+                        generateRow(sortedMakers, fakers) { item -> item.derivedValue }
+                            .joinToString(",") { it.escapeCsvValue() }
+                    }
+                }.awaitAll()
+
+                generatedRows.forEach { row ->
+                    appendLine(row)
+                }
+            }
+            // Log performance metrics
+            performanceTracker.logPerformance(startTime)
+        }
+    }
+
+    private fun sortMakers(makers: List<MakerEnum>): List<MakerEnum> {
+        return makers.sortedBy { maker ->
+            when {
+                maker.name.contains("NAME") -> 0
+                maker.name == "STATE" -> 1
+                maker.name == "CITY" -> 2
+                maker.name == "ZIP" -> 3
+                maker.name == "PHONE" -> 4
+                else -> 5
+            }
+        }
+    }
+
+    private fun <T> generateRow(
+        makers: List<MakerEnum>,
+        fakers: List<FakerEnum>,
+        transform: (DataTableItem) -> T
+    ): List<T> {
         val currentRowState = mutableListOf<DataTableItem>()
 
         return makers.map { maker ->
@@ -89,41 +121,38 @@ class SwitchBoardService {
                 MakerEnum.STATE -> cachedGenerators[MakerEnum.STATE]?.invoke(currentRowState) ?: AmericaGenerator.state()
                 MakerEnum.CITY -> cachedGenerators[MakerEnum.CITY]?.invoke(currentRowState) ?: AmericaGenerator.city(currentRowState)
                 MakerEnum.ZIP -> cachedGenerators[MakerEnum.ZIP]?.invoke(currentRowState) ?: AmericaGenerator.zip(currentRowState)
-                MakerEnum.PHONE -> AmericaGenerator.phone(currentRowState)
+                MakerEnum.PHONE -> cachedGenerators[MakerEnum.PHONE]?.invoke(currentRowState) ?: AmericaGenerator.phone(currentRowState)
                 MakerEnum.ADDRESS -> AmericaGenerator.address()
                 MakerEnum.ADDRESS_2 -> AmericaGenerator.address2()
                 MakerEnum.EMAIL -> EmailGenerator.email(currentRowState)
-                MakerEnum.NUMBER_PRICE -> DataTableItem()
-                MakerEnum.NUMBER_REGULAR -> DataTableItem()
-                MakerEnum.DATE -> DataTableItem()
-                MakerEnum.BOOLEAN -> DataTableItem()
-                MakerEnum.ID -> DataTableItem()
+                MakerEnum.NUMBER_PRICE,
+                MakerEnum.NUMBER_REGULAR,
+                MakerEnum.DATE,
+                MakerEnum.BOOLEAN,
+                MakerEnum.ID,
                 MakerEnum.CREDIT_CARD_NUMBER -> DataTableItem()
             }
             currentRowState.add(item)
-            item
+            transform(item)
         }
     }
 
-    /**
-     * Performance tracking and logging utility
-     * @param totalRows Total number of rows generated
-     * @param makerCount Number of makers used
-     * @param fakers List of faker configurations
-     * @param makers List of maker configurations
-     */
+    private fun String.escapeCsvValue(): String {
+        return when {
+            contains(',') || contains('"') || contains('\n') ->
+                "\"${replace("\"", "\"\"")}\""
+            else -> this
+        }
+    }
+
+
     private inner class PerformanceTracker(
         private val totalRows: Int,
         private val makerCount: Int,
         private val fakers: List<FakerEnum>,
         private val makers: List<MakerEnum>
     ) {
-        private val mutex = Mutex()
 
-        /**
-         * Log performance metrics
-         * @param startTime Nano time when generation started
-         */
         fun logPerformance(startTime: Long) {
             val totalTime = (System.nanoTime() - startTime) / 1_000_000 // Convert to milliseconds
 
@@ -133,15 +162,6 @@ class SwitchBoardService {
             }
         }
 
-        /**
-         * Construct performance log string
-         * @param armySize Total number of rows generated
-         * @param makers Number of makers used
-         * @param totalTime Total generation time in milliseconds
-         * @param fakers List of faker configurations
-         * @param makers List of maker configurations
-         * @return Formatted performance log string
-         */
         private fun buildPerformanceLog(
             armySize: Int,
             makerCount: Int,
