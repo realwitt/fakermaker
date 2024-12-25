@@ -25,8 +25,7 @@ object AmericaGenerator {
     private val excludedStates = setOf(
         StatesEnum.state
     )
-    // todo there's a bug with phone numbers, we need to make sure we're pulling from these for phone number generation
-    val validStates = setOf(
+    private val statesWithAreaCodes = setOf(
         StatesEnum.AK, StatesEnum.AL, StatesEnum.AZ, StatesEnum.AR, StatesEnum.CA, StatesEnum.CO,
         StatesEnum.CT, StatesEnum.DE, StatesEnum.FL, StatesEnum.GA, StatesEnum.HI, StatesEnum.ID,
         StatesEnum.IL, StatesEnum.IN, StatesEnum.IA, StatesEnum.KS, StatesEnum.KY, StatesEnum.LA,
@@ -36,6 +35,39 @@ object AmericaGenerator {
         StatesEnum.OR, StatesEnum.PA, StatesEnum.RI, StatesEnum.SC, StatesEnum.SD, StatesEnum.TN,
         StatesEnum.TX, StatesEnum.UT, StatesEnum.VT, StatesEnum.VA, StatesEnum.WA, StatesEnum.WV,
         StatesEnum.WI, StatesEnum.WY, )
+
+    // Pre-compute the common components
+    // opted for this approach to still allow uncommon states in the final data, like American Samoa, Palau, Guam, etc
+    private val citiesWithAreaCodes: Map<StatesEnum, List<Pair<String, LocationData>>> by lazy {
+        americaData
+            .mapValues { (_, cities) ->
+                cities.entries
+                    .filter { it.value.areaCodes.isNotEmpty() }
+                    .map { it.key to it.value }
+                    .toList()
+            }
+            .filterValues { it.isNotEmpty() }
+    }
+
+    // Pre-compute the common components
+    private val streetComponents = object {
+        val suffixes = Address.streetSuffixes.map { it.abbreviation to it.fullName }
+        val trees = Address.treeNames
+        val gems = Address.gemTerms
+        val terrain = Address.terrainFeatures.map { it.abbreviation to it.fullName }
+        val landmarks = Address.landmarkTerms.map { it.abbreviation to it.fullName }
+        val directions = Address.cardinalDirections.map { it.abbreviation to it.fullName }
+        val pleasant = Address.pleasantRoadAdjectives
+        val patriotic = elias.fakerMaker.fakers.America.patrioticTerms
+        val union = elias.fakerMaker.fakers.America.union.map { it.split(" ").last() }
+        val confederate = elias.fakerMaker.fakers.America.confederates.map { it.split(" ").last() }
+        val food = elias.fakerMaker.fakers.America.food
+        val firearms = elias.fakerMaker.fakers.America.firearmTerms
+        val firearmTypes = elias.fakerMaker.fakers.America.firearmTypes
+        val diseases = elias.fakerMaker.fakers.America.disease
+        val presidents = elias.fakerMaker.fakers.America.presidents.map { it.split(" ").last() }
+    }
+
 
     @OptIn(ExperimentalSerializationApi::class)
     @PostConstruct
@@ -51,20 +83,22 @@ object AmericaGenerator {
             throw e
         }
     }
-    private val citiesWithAreaCodes: Map<StatesEnum, List<Pair<String, LocationData>>> by lazy {
-        americaData
-            .mapValues { (_, cities) ->
-                cities.entries
-                    .filter { it.value.areaCodes.isNotEmpty() }
-                    .map { it.key to it.value }
-                    .toList()
-            }
-            .filterValues { it.isNotEmpty() }
+
+    private fun findCityWithAreaCode(state: StatesEnum): Triple<StatesEnum, String, String>? {
+        // Use the pre-computed citiesWithAreaCodes map
+        return citiesWithAreaCodes[state]?.randomOrNull()?.let { (city, locationData) ->
+            Triple(state, city, locationData.areaCodes.random())
+        }
     }
 
     private fun generateRandomStateCityAreaCode(): Triple<StatesEnum, String, String> {
-        val state = citiesWithAreaCodes.keys.random()
+        // Start with states we know have area codes, filtered by validStates
+        val statesWithAreaCodes = citiesWithAreaCodes.keys.filter { it in statesWithAreaCodes }
+        if (statesWithAreaCodes.isEmpty()) {
+            throw IllegalStateException("No valid states found with area codes")
+        }
 
+        val state = statesWithAreaCodes.random()
         val (city, locationData) = citiesWithAreaCodes[state]?.random()
             ?: throw IllegalStateException("No cities found with area codes for state $state")
 
@@ -202,10 +236,10 @@ object AmericaGenerator {
     }
 
     fun phone(existingItems: List<DataTableItem>?): DataTableItem {
-        val (state, city, areaCode) = (if (existingItems.isNullOrEmpty()) {
+        val (state, city, areaCode) = if (existingItems.isNullOrEmpty()) {
             generateRandomStateCityAreaCode()
-        } else
-        // Try to find city first (which will have state)
+        } else {
+            // Try to find city first (which will have state)
             existingItems.find { it.maker == MakerEnum.CITY }
                 ?.let { cityDataTableItem ->
                     val state = cityDataTableItem.influencedBy
@@ -225,36 +259,17 @@ object AmericaGenerator {
                             }
                         }
                     if (state != null && city != null) {
-                        val areaCode = americaData[state]?.get(city)?.areaCodes?.randomOrNull()
-                        if (areaCode != null) Triple(state, city, areaCode) else {
-                            generateRandomStateCityAreaCode()
+                        // Try to get area code for the current city
+                        americaData[state]?.get(city)?.areaCodes?.randomOrNull()?.let {
+                            Triple(state, city, it)
                         }
+                        // If no area code, try another city in the same state
+                            ?: findCityWithAreaCode(state)
+                            // If no cities in state have area codes, get a random valid state with area codes
+                            ?: generateRandomStateCityAreaCode()
                     } else null
                 }
-            // If no city found, try to find zip
-                ?: existingItems.find { it.maker == MakerEnum.ZIP }
-                    ?.influencedBy
-                    ?.let { influencers ->
-                        val state = influencers.find { it is Influencer.State }?.let {
-                            when (it) {
-                                is Influencer.State -> it.state
-                                else -> null
-                            }
-                        }
-                        val city = influencers.find { it is Influencer.City }?.let {
-                            when (it) {
-                                is Influencer.City -> it.city
-                                else -> null
-                            }
-                        }
-                        if (state != null && city != null) {
-                            val areaCode = americaData[state]?.get(city)?.areaCodes?.randomOrNull()
-                            if (areaCode != null) Triple(state, city, areaCode) else {
-                                generateRandomStateCityAreaCode()
-                            }
-                        } else null
-                    }
-                // If no zip found, try to find state
+            // If no city found, try to find state
                 ?: existingItems.find { it.maker == MakerEnum.STATE }
                     ?.influencedBy
                     ?.find { it is Influencer.State }
@@ -262,20 +277,14 @@ object AmericaGenerator {
                         when (influenceType) {
                             is Influencer.State -> {
                                 val state = influenceType.state
-                                val city = americaData[state]?.entries?.random()?.key
-                                if (city != null) {
-                                    val areaCode = americaData[state]?.get(city)?.areaCodes?.randomOrNull()
-                                    if (areaCode != null) Triple(state, city, areaCode) else {
-                                        generateRandomStateCityAreaCode()
-                                    }
-                                } else null
+                                findCityWithAreaCode(state) ?: generateRandomStateCityAreaCode()
                             }
-
                             else -> null
                         }
                     }
-                // No city, zip, or state found, generate everything randomly
-                ?: generateRandomStateCityAreaCode())
+                // No city or state found, generate everything randomly
+                ?: generateRandomStateCityAreaCode()
+        }
 
         val prefix = Random.nextInt(100, 999)
         val lineNumber = Random.nextInt(1000, 9999)
@@ -307,25 +316,6 @@ object AmericaGenerator {
                 existingItems?.find { it.maker == MakerEnum.ZIP }?.let { Influencer.Zip(it.derivedValue) }
             )
         )
-    }
-
-    // Pre-compute the common components
-    private val streetComponents = object {
-        val suffixes = Address.streetSuffixed.map { it.abbreviation to it.fullName }
-        val trees = Address.treeNames
-        val gems = Address.gemTerms
-        val terrain = Address.terrainFeatures.map { it.abbreviation to it.fullName }
-        val landmarks = Address.landmarkTerms.map { it.abbreviation to it.fullName }
-        val directions = Address.cardinalDirections.map { it.abbreviation to it.fullName }
-        val pleasant = Address.pleasantRoadAdjectives
-        val patriotic = elias.fakerMaker.fakers.America.patrioticTerms
-        val union = elias.fakerMaker.fakers.America.union.map { it.split(" ").last() }
-        val confederate = elias.fakerMaker.fakers.America.confederates.map { it.split(" ").last() }
-        val food = elias.fakerMaker.fakers.America.food
-        val firearms = elias.fakerMaker.fakers.America.firearmTerms
-        val firearmTypes = elias.fakerMaker.fakers.America.firearmTypes
-        val diseases = elias.fakerMaker.fakers.America.disease
-        val presidents = elias.fakerMaker.fakers.America.presidents.map { it.split(" ").last() }
     }
 
     private fun getSuffix(useAbbrev: Boolean): String =

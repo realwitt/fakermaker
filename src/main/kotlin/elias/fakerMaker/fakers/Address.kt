@@ -6,7 +6,7 @@ object Address {
         val fullName: String
     )
 
-    val streetSuffixed = listOf(
+    val streetSuffixes = listOf(
         AddressObj("St.", "Street"),        // Most common for main roads
         AddressObj("Ave.", "Avenue"),       // Often larger/grander streets
         AddressObj("Rd.", "Road"),          // Common for longer routes
