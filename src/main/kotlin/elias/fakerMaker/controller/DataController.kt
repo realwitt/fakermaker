@@ -23,7 +23,7 @@ class DataController(
         .buildDataTable(
             count,
             listOf(FakerEnum.GRAVITY_FALLS, FakerEnum.KING_OF_THE_HILL, FakerEnum.HARRY_POTTER),
-            listOf(MakerEnum.ADDRESS, MakerEnum.PHONE, MakerEnum.NAME_FIRST)
+            listOf(MakerEnum.ADDRESS, MakerEnum.PHONE, MakerEnum.NAME_FIRST, MakerEnum.ZIP, MakerEnum.STATE)
         )
         .asFlux()
 
@@ -31,8 +31,10 @@ class DataController(
     suspend fun getFakeData(@PathVariable count: Int) : ResponseEntity<String> {
         val csvData = switchBoardService.buildCsv(
             count,
-            listOf(MakerEnum.ADDRESS, MakerEnum.PHONE, MakerEnum.NAME_FIRST),
-            listOf(FakerEnum.GRAVITY_FALLS, FakerEnum.KING_OF_THE_HILL, FakerEnum.HARRY_POTTER),
+            getRandomMakers(),
+            getRandomFakers(),
+//            listOf(MakerEnum.ADDRESS, MakerEnum.PHONE, MakerEnum.NAME_FIRST),
+//            listOf(FakerEnum.GRAVITY_FALLS, FakerEnum.KING_OF_THE_HILL, FakerEnum.HARRY_POTTER),
         )
 
         return ResponseEntity.ok()

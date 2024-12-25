@@ -1,5 +1,6 @@
 package elias.fakerMaker.service
 
+import de.siegmar.fastcsv.writer.CsvWriter
 import elias.fakerMaker.dto.DataTableItem
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.MakerEnum
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
+import java.io.StringWriter
 import java.util.concurrent.ConcurrentHashMap
 
 @Service
@@ -59,8 +61,8 @@ class SwitchBoardService {
     }
 
     /**
-     * Generates CSV data with specified configurations
-     * @param armySize Number of rows to generate (max 10,000)
+     * Generates CSV data with specified configurations using FastCSV
+     * @param armySize Number of rows to generate
      * @param makers List of maker configurations
      * @param fakers List of faker configurations
      * @return CSV formatted string
@@ -69,29 +71,39 @@ class SwitchBoardService {
         val startTime = System.nanoTime()
         val performanceTracker = PerformanceTracker(armySize, makers.size, fakers, makers)
 
-        val sanitizedSize = minOf(armySize, 10_000)
+        val sanitizedSize = armySize
         val sortedMakers = sortMakers(makers)
 
-        return buildString {
-            // Add header
-            appendLine(sortedMakers.joinToString(",") { it.name })
+        return StringWriter().use { writer ->
+            CsvWriter.builder()
+                .build(writer)
+                .use { csvWriter ->
+                    // Write header
+                    csvWriter.writeRecord(sortedMakers.map { it.name })
 
-            coroutineScope {
-                val generatedRows = (0 until sanitizedSize).map {
-                    async(Dispatchers.Default) {
-                        generateRow(sortedMakers, fakers) { item -> item.derivedValue }
-                            .joinToString(",") { it.escapeCsvValue() }
+                    // Generate and write data rows
+                    coroutineScope {
+                        val generatedRows = (0 until sanitizedSize).map {
+                            async(Dispatchers.Default) {
+                                generateRow(sortedMakers, fakers) { item -> item.derivedValue }
+                            }
+                        }.awaitAll()
+
+                        // Write each row to CSV
+                        generatedRows.forEach { row ->
+                            csvWriter.writeRecord(row)
+                        }
                     }
-                }.awaitAll()
-
-                generatedRows.forEach { row ->
-                    appendLine(row)
                 }
+
+            // Get the final CSV string
+            writer.toString().also {
+                // Log performance metrics
+                performanceTracker.logPerformance(startTime)
             }
-            // Log performance metrics
-            performanceTracker.logPerformance(startTime)
         }
     }
+
 
     private fun sortMakers(makers: List<MakerEnum>): List<MakerEnum> {
         return makers.sortedBy { maker ->

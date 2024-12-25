@@ -1,6 +1,6 @@
 package elias.fakerMaker.model
 
-import jakarta.persistence.*
+import jakarta.persistence.Id
 
 data class Session(
     @Id

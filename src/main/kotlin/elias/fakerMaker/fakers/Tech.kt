@@ -306,7 +306,6 @@ object Tech {
         "blueyonder.co.uk",
         "rediffmail.com",
         "inbox.com",
-        "fastmail.fm",
         "gawab.com",
         "canada.com",
         // Educational/Organizational domains
@@ -451,10 +450,6 @@ object Tech {
         ".beer",
         ".pizza",
         ".coffee",
-        ".guru",
-        ".ninja",
-        ".pirate",
-        ".zombie",
         // Geographic
         ".nyc",
         ".london",

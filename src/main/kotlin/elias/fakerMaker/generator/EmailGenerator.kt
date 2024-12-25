@@ -1,9 +1,9 @@
 package elias.fakerMaker.generator
 
-import elias.fakerMaker.fakers.Adjectives
 import elias.fakerMaker.dto.DataTableItem
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.MakerEnum
+import elias.fakerMaker.fakers.Adjectives
 import elias.fakerMaker.fakers.Tech
 import elias.fakerMaker.fakers.books.GameOfThrones
 import elias.fakerMaker.fakers.tvshow.*
