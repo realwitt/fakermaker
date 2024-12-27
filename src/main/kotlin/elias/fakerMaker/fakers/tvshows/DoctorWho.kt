@@ -1,4 +1,4 @@
-package elias.fakerMaker.fakers.tvshow
+package elias.fakerMaker.fakers.tvshows
 
 object DoctorWho {
     val characters = listOf(

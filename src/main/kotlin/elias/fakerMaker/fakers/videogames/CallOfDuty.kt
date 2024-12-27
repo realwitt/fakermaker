@@ -1,4 +1,4 @@
-package elias.fakerMaker.fakers.videogame
+package elias.fakerMaker.fakers.videogames
 
 object CallOfDuty {
     val guns = listOf(

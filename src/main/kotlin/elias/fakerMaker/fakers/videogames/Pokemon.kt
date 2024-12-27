@@ -1,4 +1,4 @@
-package elias.fakerMaker.fakers.videogame
+package elias.fakerMaker.fakers.videogames
 
 object Pokemon {
     val gen1Pokemon = listOf(
