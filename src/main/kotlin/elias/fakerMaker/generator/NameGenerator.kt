@@ -10,9 +10,10 @@ import elias.fakerMaker.fakers.sports.Baseball
 import elias.fakerMaker.fakers.sports.Basketball
 import elias.fakerMaker.fakers.tvshows.*
 import elias.fakerMaker.fakers.videogames.CallOfDuty
+import kotlin.random.Random
 
 object NameGenerator {
-    // Convert lists to sets for more efficient lookup
+    // Pre-computed sets for faker type lookups
     private val characterNameFakers = setOf(
         FakerEnum.BACK_TO_THE_FUTURE,
         FakerEnum.BASEBALL,
@@ -46,7 +47,7 @@ object NameGenerator {
         FakerEnum.THE_OFFICE
     )
 
-    // Pre-compute character lists
+    // Pre-computed character and company lists
     private val staticCharacterLists = mapOf(
         FakerEnum.BACK_TO_THE_FUTURE to BackToTheFuture.characters.toList(),
         FakerEnum.BASEBALL to Baseball.players.toList(),
@@ -80,13 +81,9 @@ object NameGenerator {
         FakerEnum.THE_OFFICE to TheOffice.companies.toList()
     )
 
-    // Pre-compute first and last name maps for each faker
+    // Pre-computed name components
     private val precomputedFirstNames = mutableMapOf<FakerEnum, List<String>>()
     private val precomputedLastNames = mutableMapOf<FakerEnum, List<String>>()
-
-    // Cache to store pre-generated random names for each faker
-    private val nameCache = mutableMapOf<FakerEnum, Pair<String, String>>()
-
     private val TITLE_PREFIXES = setOf("The", "Mrs.", "Mr.")
 
     init {
@@ -120,30 +117,15 @@ object NameGenerator {
         return if (lastSpaceIndex == -1) name else name.substring(lastSpaceIndex + 1)
     }
 
-    private fun getOrGenerateRandomName(faker: FakerEnum): Pair<String, String> {
-        return nameCache.getOrPut(faker) {
-            staticCharacterLists[faker]?.random()?.let { fullName ->
-                Pair(
-                    precomputedFirstNames[faker]?.random() ?: extractFirstName(fullName),
-                    precomputedLastNames[faker]?.random() ?: extractLastName(fullName)
-                )
-            } ?: throw IllegalStateException("Failed to find character list for faker: ${faker.prettyName}")
-        }
-    }
-
-    // use caching to store the current request's fakers so we can have faster lookups
-    // this is tightly coupled to nameGenerator and shouldn't be accessed
     private class ValidFakersCache {
         private var characterFakersCache: Pair<List<FakerEnum>?, Set<FakerEnum>>? = null
         private var companyFakersCache: Pair<List<FakerEnum>?, Set<FakerEnum>>? = null
 
         fun getValidCharacterFakers(fakers: List<FakerEnum>?): Set<FakerEnum> {
-            // Check if we have a cached result for this exact list
             characterFakersCache?.let { (cachedInput, cachedResult) ->
                 if (cachedInput == fakers) return cachedResult
             }
 
-            // Calculate and cache the result
             val result = if (fakers.isNullOrEmpty()) {
                 characterNameFakers
             } else {
@@ -159,20 +141,15 @@ object NameGenerator {
         }
 
         fun getValidCompanyFakers(fakers: List<FakerEnum>?): Set<FakerEnum> {
-            // Check if we have a cached result for this exact list
             companyFakersCache?.let { (cachedInput, cachedResult) ->
                 if (cachedInput == fakers) return cachedResult
             }
 
-            // Calculate and cache the result
             val result = if (fakers.isNullOrEmpty()) {
                 companyNameFakers
             } else {
-                companyNameFakers.intersect(fakers.toSet()).also {
-                    if (it.isEmpty()) {
-                        throw IllegalArgumentException("No valid company name faker found in provided list: ${fakers.joinToString()}")
-                    }
-                }
+                val validFakers = companyNameFakers.intersect(fakers.toSet())
+                if (validFakers.isEmpty()) companyNameFakers else validFakers
             }
 
             companyFakersCache = fakers to result
@@ -185,12 +162,10 @@ object NameGenerator {
         }
     }
 
-    // ThreadLocal to ensure thread safety for concurrent requests
     private val validFakersCache = ThreadLocal.withInitial { ValidFakersCache() }
 
     fun firstName(fakers: List<FakerEnum>?): DataTableItem {
         val validFaker = validFakersCache.get().getValidCharacterFakers(fakers).random()
-        val (firstName, _) = getOrGenerateRandomName(validFaker)
         val fullName = staticCharacterLists[validFaker]?.random()
             ?: throw IllegalStateException("Unable to find character list for faker: ${validFaker.prettyName}")
 
@@ -198,45 +173,95 @@ object NameGenerator {
             maker = MakerEnum.NAME_FIRST,
             fakersUsed = listOf(validFaker),
             originalValue = fullName,
-            derivedValue = firstName,
+            derivedValue = extractFirstName(fullName),
             wikiUrl = WikiUtil.createFandomWikiLink(validFaker, fullName, false),
             influencedBy = null
         )
     }
 
-    fun lastName(fakers: List<FakerEnum>?): DataTableItem {
+    fun lastName(existingItems: List<DataTableItem>?, fakers: List<FakerEnum>?): DataTableItem {
+        val firstNameItem = existingItems?.find { it.maker == MakerEnum.NAME_FIRST }
+
+        // 50% chance to use the same character's last name if we have a firstName
+        if (firstNameItem != null && Random.nextBoolean()) {
+            val faker = firstNameItem.fakersUsed?.firstOrNull()
+                ?: throw IllegalStateException("First name item has no faker")
+            val fullName = firstNameItem.originalValue
+                ?: throw IllegalStateException("First name item has no original value")
+
+            val lastName = extractLastName(fullName)
+
+            // If first name equals last name, generate a new last name instead
+            if (firstNameItem.derivedValue == lastName) {
+                // Fall through to random generation
+            } else {
+                return DataTableItem(
+                    maker = MakerEnum.NAME_LAST,
+                    fakersUsed = listOf(faker),
+                    originalValue = fullName,
+                    derivedValue = lastName,
+                    wikiUrl = WikiUtil.createFandomWikiLink(faker, fullName, false),
+                    influencedBy = null
+                )
+            }
+        }
+
+        // Otherwise, get a random last name from the provided fakers
         val validFaker = validFakersCache.get().getValidCharacterFakers(fakers).random()
         val fullName = staticCharacterLists[validFaker]?.random()
             ?: throw IllegalStateException("Unable to find character list for faker: ${validFaker.prettyName}")
-
-        val lastName = extractLastName(fullName)
 
         return DataTableItem(
             maker = MakerEnum.NAME_LAST,
             fakersUsed = listOf(validFaker),
             originalValue = fullName,
-            derivedValue = lastName,
+            derivedValue = extractLastName(fullName),
             wikiUrl = WikiUtil.createFandomWikiLink(validFaker, fullName, false),
             influencedBy = null
         )
     }
 
-    fun companyName(fakers: List<FakerEnum>?): DataTableItem {
-        val validFaker = validFakersCache.get().getValidCompanyFakers(fakers).random()
-        val companyName = staticCompanyLists[validFaker]?.random()
-            ?: throw IllegalStateException("Unable to find company list for faker: ${validFaker.prettyName}")
+    fun companyName(existingItems: List<DataTableItem>?, fakers: List<FakerEnum>?): DataTableItem {
+        val firstNameItem = existingItems?.find { it.maker == MakerEnum.NAME_FIRST }
+        val lastNameItem = existingItems?.find { it.maker == MakerEnum.NAME_LAST }
+
+        // If both names exist and are from the same faker, try to use that faker first
+        if (firstNameItem != null && lastNameItem != null) {
+            val firstNameFaker = firstNameItem.fakersUsed?.firstOrNull()
+            val lastNameFaker = lastNameItem.fakersUsed?.firstOrNull()
+
+            if (firstNameFaker == lastNameFaker && firstNameFaker != null &&
+                firstNameItem.originalValue == lastNameItem.originalValue &&
+                companyNameFakers.contains(firstNameFaker)) {
+                staticCompanyLists[firstNameFaker]?.random()?.let { companyName ->
+                    return DataTableItem(
+                        maker = MakerEnum.NAME_COMPANY,
+                        fakersUsed = listOf(firstNameFaker),
+                        originalValue = companyName,
+                        derivedValue = companyName,
+                        wikiUrl = WikiUtil.createFandomWikiLink(firstNameFaker, companyName, true),
+                        influencedBy = null
+                    )
+                }
+            }
+        }
+
+        // Try to use a company name from the provided fakers
+        val validFakers = validFakersCache.get().getValidCompanyFakers(fakers)
+        val selectedFaker = validFakers.random()
+        val companyName = staticCompanyLists[selectedFaker]?.random()
+            ?: throw IllegalStateException("Unable to find company list for faker: ${selectedFaker.prettyName}")
 
         return DataTableItem(
             maker = MakerEnum.NAME_COMPANY,
-            fakersUsed = listOf(validFaker),
+            fakersUsed = listOf(selectedFaker),
             originalValue = companyName,
             derivedValue = companyName,
-            wikiUrl = WikiUtil.createFandomWikiLink(validFaker, companyName, true),
+            wikiUrl = WikiUtil.createFandomWikiLink(selectedFaker, companyName, true),
             influencedBy = null
         )
     }
 
-    // Call this at the end of processing each CSV request
     fun clearCache() {
         validFakersCache.get().clear()
     }

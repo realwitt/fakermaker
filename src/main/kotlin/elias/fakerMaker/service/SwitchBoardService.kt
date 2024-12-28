@@ -4,9 +4,7 @@ import de.siegmar.fastcsv.writer.CsvWriter
 import elias.fakerMaker.dto.DataTableItem
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.MakerEnum
-import elias.fakerMaker.generator.AmericaGenerator
-import elias.fakerMaker.generator.EmailGenerator
-import elias.fakerMaker.generator.NameGenerator
+import elias.fakerMaker.generator.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -23,12 +21,17 @@ class SwitchBoardService(
 
     // Precompute maker order for better performance
     private val makerOrder = mapOf(
-        "NAME" to 0,
-        "STATE" to 1,
-        "CITY" to 2,
-        "ZIP" to 3,
-        "PHONE" to 4
+        "NAME_FIRST" to 0,
+        "NAME_LAST" to 1,
+        "NAME_COMPANY" to 2,
+        "STATE" to 3,
+        "CITY" to 4,
+        "ZIP" to 5,
+        "PHONE" to 6,
+        "CREDIT_CARD_NUMBER" to 7,
+        "CREDIT_CARD_CVV" to 8
     )
+
 
     // Buffer size for CSV writing
     val CSV_BUFFER_SIZE = 32768  // 32KB, internal buffer size used by FastCSV for writing to disk/files
@@ -41,16 +44,25 @@ class SwitchBoardService(
         MakerEnum.PHONE to { items -> AmericaGenerator.phone(items) },
         MakerEnum.EMAIL to { items -> EmailGenerator.email(items) },
         MakerEnum.NAME_FIRST to { _ -> NameGenerator.firstName(fakers) },
-        MakerEnum.NAME_LAST to { _ -> NameGenerator.lastName(fakers) },
-        MakerEnum.NAME_COMPANY to { _ -> NameGenerator.companyName(fakers) },
+        MakerEnum.NAME_LAST to { items -> NameGenerator.lastName(items, fakers) },
+        MakerEnum.NAME_COMPANY to { items -> NameGenerator.companyName(items, fakers) },
         MakerEnum.ADDRESS to { _ -> AmericaGenerator.address() },
-        MakerEnum.ADDRESS_2 to { _ -> AmericaGenerator.address2() }
+        MakerEnum.ADDRESS_2 to { _ -> AmericaGenerator.address2() },
+        // todo: the data type will have to change from List<FakerEnums> to Schema so we can pass these values
+        MakerEnum.NUMBER_REGULAR to { _ -> NumberGenerator.numRange(null, null) },
+        MakerEnum.NUMBER_PRICE to { _ -> NumberGenerator.priceRange(null, null) },
+        MakerEnum.DATE to { _ -> DateGenerator.dateRange(null, null) },
+        MakerEnum.CREDIT_CARD_NUMBER to { _ -> CreditCardGenerator.creditCard() },
+        MakerEnum.CREDIT_CARD_CVV to { items -> CreditCardGenerator.cvv(items) },
+        // todo add a parameter so we can explicitly tell it what type of ID we want
+        MakerEnum.ID to { _ -> IdGenerator.id() },
+        MakerEnum.BOOLEAN to { _ -> BooleanGenerator.bool() },
     )
 
     fun buildDataTable(armySize: Int, fakers: List<FakerEnum>, makers: List<MakerEnum>): Flow<List<DataTableItem>> = channelFlow {
         val startTime = System.nanoTime()
         val sortedMakers = makers.sortedBy { maker ->
-            makerOrder.entries.find { maker.name.contains(it.key) }?.value ?: Int.MAX_VALUE
+            makerOrder[maker.name] ?: Int.MAX_VALUE
         }
         val performanceTracker = PerformanceTracker(armySize, makers.size, fakers, makers)
         val generators = initGenerators(fakers)

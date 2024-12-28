@@ -10,7 +10,8 @@ object RickAndMorty {
         "Jerry Smith",
         "Space Beth",
         // Major recurring characters
-        "Birdperson/Phoenixperson",
+        "Birdperson",
+        "Phoenixperson",
         "Mr. Poopybutthole",
         "Evil Morty",
         "Mr. Meeseeks",
@@ -18,7 +19,8 @@ object RickAndMorty {
         "Unity",
         "Jessica",
         "Tammy Gueterman",
-        "Snuffles/Snowball",
+        "Snuffles",
+        "Snowball",
         // Government/Citadel
         "President Curtis",
         "President Morty",
@@ -50,9 +52,7 @@ object RickAndMorty {
         "Doofus Rick",
         "Tall Morty",
         "Lawyer Morty",
-        "Cop Morty",
         "Factory Worker Rick",
-        "Drunk Rick",
         "Pickle Rick",
         // Aliens/Other Dimensions
         "Abradolf Lincler",

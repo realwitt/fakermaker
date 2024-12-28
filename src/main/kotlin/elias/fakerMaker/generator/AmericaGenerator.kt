@@ -206,11 +206,14 @@ object AmericaGenerator {
             }
         }
 
+        // pad the zip with 0s for cases like the Virgin Islands (VI) that have a zip of 00841
+        val paddedZip = zip.padStart(5, '0')
+
         return DataTableItem(
             maker = MakerEnum.ZIP,
             fakersUsed = null,
             originalValue = "$city, $state $zip",
-            derivedValue = zip,
+            derivedValue = paddedZip,
             wikiUrl = WikiUtil.createCityWikiLink(state, city),
             influencedBy = listOf(
                 Influencer.State(state),

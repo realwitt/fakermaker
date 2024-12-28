@@ -19,4 +19,5 @@ enum class MakerEnum(@JsonValue val prettyName: String) {
     BOOLEAN("True/False"),
     ID("Id"),
     CREDIT_CARD_NUMBER("Credit Card"),
+    CREDIT_CARD_CVV("Credit Card CVV"),
 }
