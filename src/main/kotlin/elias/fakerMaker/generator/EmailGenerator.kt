@@ -7,7 +7,6 @@ import elias.fakerMaker.fakers.Adjectives
 import elias.fakerMaker.fakers.Tech
 import elias.fakerMaker.fakers.books.GameOfThrones
 import elias.fakerMaker.fakers.tvshows.*
-import elias.fakerMaker.utils.WikiUtil
 import kotlin.random.Random
 
 object EmailGenerator {
@@ -35,17 +34,56 @@ object EmailGenerator {
         FakerEnum.GAME_OF_THRONES to GameOfThrones.locations
     )
 
-    // Pre-compute filtered domain lists to avoid repeated filtering operations
+    // Cache sanitized domain lists since they don't change
     private val sanitizedDomainLists = staticDomainLists.mapValues { (_, domains) ->
         domains.map { it.replace("'", "").filter { c -> c.isLetterOrDigit() }.lowercase() }
     }
 
-    // Cache common values and computations
+    // Cache common values
     private const val COM_TLD = ".com"
     private const val ORG_TLD = ".org"
-    private val emailProviders = Tech.emailProviders.toList() // Convert to list for good random access
+    private val emailProviders = Tech.emailProviders.toList()
 
-    private val localPartGenerators = object {
+    // Pre-compute lists for random generation
+    private val cachedTechPeople = Tech.people.toList()
+    private val cachedTechBuzzwords = Tech.buzzwords.toList()
+    private val cachedQuirkyAdjectives = Adjectives.quirky.toList()
+
+    // Cache for valid fakers per request (the fakers don't change between rows)
+    private class ValidFakersCache {
+        private var domainFakersCache: Set<FakerEnum>? = null
+
+        fun getValidDomainFakers(dataTableItems: List<DataTableItem>?): Set<FakerEnum> {
+            if (dataTableItems == null) return emptySet()
+
+            // Return cached result if available
+            domainFakersCache?.let { return it }
+
+            // Calculate and cache the result
+            val result = buildSet {
+                dataTableItems.forEach { item ->
+                    item.fakersUsed?.forEach { faker ->
+                        if (faker in validEmailFakers) {
+                            add(faker)
+                        }
+                    }
+                }
+            }
+
+            domainFakersCache = result
+            return result
+        }
+
+        fun clear() {
+            domainFakersCache = null
+        }
+    }
+
+    // Creates a separate ValidFakersCache instance for each thread that accesses EmailGenerator,
+    // this prevents concurrency issues when multiple threads are generating emails simultaneously.
+    private val validFakersCache = ThreadLocal.withInitial { ValidFakersCache() }
+
+    private object LocalPartGenerators {
         fun fromFullName(first: String, last: String): String = when(Random.nextInt(4)) {
             0 -> "$first$last"
             1 -> "$first$last${Random.nextInt(999)}"
@@ -56,22 +94,22 @@ object EmailGenerator {
         fun fromSingleName(name: String): String = when(Random.nextInt(5)) {
             0 -> name
             1 -> "$name${Random.nextInt(999)}"
-            2 -> "$name${Adjectives.quirky.random()}"
-            3 -> "$name${Tech.buzzwords.random()}"
-            else -> Tech.buzzwords.random()
+            2 -> "$name${cachedQuirkyAdjectives.random()}"
+            3 -> "$name${cachedTechBuzzwords.random()}"
+            else -> cachedTechBuzzwords.random()
         }.lowercase()
 
         fun random(): String = when(Random.nextInt(3)) {
-            0 -> Tech.people.random()
-            1 -> "${Tech.buzzwords.random()}${Random.nextInt(999)}"
-            else -> "${Adjectives.quirky.random()}${Tech.buzzwords.random()}"
+            0 -> cachedTechPeople.random()
+            1 -> "${cachedTechBuzzwords.random()}${Random.nextInt(999)}"
+            else -> "${cachedQuirkyAdjectives.random()}${cachedTechBuzzwords.random()}"
         }.lowercase()
     }
 
     fun email(dataTableItems: List<DataTableItem>?): DataTableItem {
         if (dataTableItems == null) {
             return generateDefaultEmail(
-                localPart =  localPartGenerators.random().filterNot { it.isWhitespace() },
+                localPart = LocalPartGenerators.random().filterNot { it.isWhitespace() },
                 dataTableItems = null
             )
         }
@@ -91,22 +129,17 @@ object EmailGenerator {
             firstNameItem != null && lastNameItem != null && random in 0.5..0.55 ->
                 createPersonalEmail(localPart, firstNameItem.derivedValue, lastNameItem.derivedValue)
 
-            // Default case
-            else -> {
-                val relevantItems = dataTableItems.filter {
-                    it.maker == MakerEnum.NAME_FIRST || it.maker == MakerEnum.NAME_LAST
-                }
-                generateDefaultEmail(localPart, relevantItems)
-            }
+            // Default case with cached faker validation
+            else -> generateDefaultEmail(localPart, dataTableItems)
         }
     }
 
     private fun createLocalPart(firstName: String?, lastName: String?): String = when {
         !firstName.isNullOrEmpty() && !lastName.isNullOrEmpty() ->
-            localPartGenerators.fromFullName(firstName, lastName)
-        !firstName.isNullOrEmpty() -> localPartGenerators.fromSingleName(firstName)
-        !lastName.isNullOrEmpty() -> localPartGenerators.fromSingleName(lastName)
-        else -> localPartGenerators.random().filterNot { it.isWhitespace() }
+            LocalPartGenerators.fromFullName(firstName, lastName)
+        !firstName.isNullOrEmpty() -> LocalPartGenerators.fromSingleName(firstName)
+        !lastName.isNullOrEmpty() -> LocalPartGenerators.fromSingleName(lastName)
+        else -> LocalPartGenerators.random().filterNot { it.isWhitespace() }
     }
 
     private fun createCompanyEmail(localPart: String, companyItem: DataTableItem): DataTableItem {
@@ -151,15 +184,8 @@ object EmailGenerator {
             )
         }
 
-        val domainFakers = buildSet {
-            dataTableItems.forEach { item ->
-                item.fakersUsed?.forEach { faker ->
-                    if (faker in validEmailFakers) {
-                        add(faker)
-                    }
-                }
-            }
-        }
+        // Use cached domain fakers
+        val domainFakers = validFakersCache.get().getValidDomainFakers(dataTableItems)
 
         // Decide domain strategy
         val useValidFaker = domainFakers.isNotEmpty() && Random.nextBoolean()
@@ -193,5 +219,9 @@ object EmailGenerator {
             wikiUrl = WikiUtil.createFandomWikiLink(faker, domainValue, false),
             influencedBy = null
         )
+    }
+
+    fun clearCache() {
+        validFakersCache.get().clear()
     }
 }

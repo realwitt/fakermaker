@@ -1,5 +1,5 @@
 ### Generate test data table with 50 records
-POST http://localhost:8181/api/fakermaker/dataTable/50
+POST http://localhost:8181/api/fakermaker/dataTable/1
 
 ### Download 1M records with specified schema
 POST http://localhost:8181/api/fakermaker/download/1000000

@@ -1,8 +1,8 @@
-package elias.fakerMaker.utils
-
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.StatesEnum
+import org.springframework.stereotype.Component
 
+@Component
 object WikiUtil {
     private const val WIKIPEDIA_BASE_URL = "https://en.wikipedia.org/wiki/"
     private const val AREA_CODES_BASE_URL = "https://www.allareacodes.com/"
@@ -25,32 +25,31 @@ object WikiUtil {
     // Cache for generated fandom URLs
     private val fandomBaseUrls: Map<FakerEnum, String> by lazy {
         buildMap {
-            // Add special cases first
             putAll(specialFandomCases)
-
-            // Generate URLs for other enum values
             FakerEnum.entries
                 .filterNot { it in specialFandomCases.keys }
+                // The keys are the enum values
+                // The values are created by transforming each key using the provided lambda
+                // where "this" is the map we're building
                 .associateWithTo(this) { enum ->
                     "https://${enum.toString().lowercase().replace("_", "")}$FANDOM_BASE_SUFFIX"
                 }
         }
     }
 
-    // lol reusing this saves us 256 bytes... why not
-    private val StringBuilder.clear: StringBuilder
-        get() {
-            setLength(0)
-            return this
-        }
+    // Use ThreadLocal for StringBuilder to ensure thread safety
+    private val stringBuilder = ThreadLocal.withInitial { StringBuilder(256) }
 
-    private val stringBuilder = StringBuilder(256)
+    private fun StringBuilder.safeClear(): StringBuilder {
+        setLength(0)
+        return this
+    }
 
     fun createStateWikiLink(state: StatesEnum): String =
         stateWikiLinks.getValue(state)
 
     fun createCityWikiLink(state: StatesEnum, city: String): String =
-        stringBuilder.clear
+        stringBuilder.get().safeClear()
             .append(WIKIPEDIA_BASE_URL)
             .append(city.replace(SPACE_REGEX, "_"))
             .append(",_")
@@ -58,13 +57,14 @@ object WikiUtil {
             .toString()
 
     fun createPhoneWikiLink(areaCode: String): String =
-        stringBuilder.clear
+        stringBuilder.get().safeClear()
             .append(AREA_CODES_BASE_URL)
             .append(areaCode)
             .toString()
 
     fun createFandomWikiLink(fakerEnum: FakerEnum, fullName: String, concatEntireName: Boolean): String {
         val baseUrl = fandomBaseUrls.getValue(fakerEnum)
+        val sb = stringBuilder.get()
 
         val queryParam = if (concatEntireName) {
             fullName.replace(SPACE_REGEX, "_")
@@ -75,7 +75,7 @@ object WikiUtil {
             } else if (parts.first() == parts.last()) {
                 parts.first()
             } else {
-                stringBuilder.clear
+                sb.safeClear()
                     .append(parts.first())
                     .append('_')
                     .append(parts.last())
@@ -83,7 +83,7 @@ object WikiUtil {
             }
         }
 
-        return stringBuilder.clear
+        return sb.safeClear()
             .append(baseUrl)
             .append(queryParam)
             .toString()

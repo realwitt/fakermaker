@@ -30,97 +30,124 @@ class SwitchBoardService(
         "PHONE" to 4
     )
 
-    // Pre-initialize generators map with function references
-    private val generators: Map<MakerEnum, (List<DataTableItem>) -> DataTableItem> = mapOf(
+    // Buffer size for CSV writing
+    val CSV_BUFFER_SIZE = 32768  // 32KB, internal buffer size used by FastCSV for writing to disk/files
+    private val BATCH_SIZE = 5000 // how many rows we process together in memory before writing
+
+    private fun initGenerators(fakers: List<FakerEnum>): Map<MakerEnum, (List<DataTableItem>) -> DataTableItem> = mapOf(
         MakerEnum.STATE to { _ -> AmericaGenerator.state() },
         MakerEnum.CITY to { items -> AmericaGenerator.city(items) },
         MakerEnum.ZIP to { items -> AmericaGenerator.zip(items) },
         MakerEnum.PHONE to { items -> AmericaGenerator.phone(items) },
         MakerEnum.EMAIL to { items -> EmailGenerator.email(items) },
-        MakerEnum.NAME_FIRST to { _ -> NameGenerator.firstName(null) },
-        MakerEnum.NAME_LAST to { _ -> NameGenerator.lastName(null) },
-        MakerEnum.NAME_COMPANY to { _ -> NameGenerator.companyName(null) },
+        MakerEnum.NAME_FIRST to { _ -> NameGenerator.firstName(fakers) },
+        MakerEnum.NAME_LAST to { _ -> NameGenerator.lastName(fakers) },
+        MakerEnum.NAME_COMPANY to { _ -> NameGenerator.companyName(fakers) },
         MakerEnum.ADDRESS to { _ -> AmericaGenerator.address() },
         MakerEnum.ADDRESS_2 to { _ -> AmericaGenerator.address2() }
     )
 
-    // Buffer size for CSV writing
-    val CSV_BUFFER_SIZE = 32768  // 32KB, internal buffer size used by FastCSV for writing to disk/files
-    private val BATCH_SIZE = 5000 // how many rows we process together in memory before writing
-
     fun buildDataTable(armySize: Int, fakers: List<FakerEnum>, makers: List<MakerEnum>): Flow<List<DataTableItem>> = channelFlow {
         val startTime = System.nanoTime()
-        val sortedMakers = sortMakers(makers)
-        val performanceTracker = PerformanceTracker(armySize, makers.size, fakers, makers)
-
-        withContext(workerContext) {
-            (0 until armySize).chunked(BATCH_SIZE).forEach { chunk ->
-                val rows = chunk.map {
-                    async { generateRow(sortedMakers, fakers) { it } }
-                }.awaitAll()
-                rows.forEach { row -> send(row) }
-            }
+        val sortedMakers = makers.sortedBy { maker ->
+            makerOrder.entries.find { maker.name.contains(it.key) }?.value ?: Int.MAX_VALUE
         }
+        val performanceTracker = PerformanceTracker(armySize, makers.size, fakers, makers)
+        val generators = initGenerators(fakers)
 
-        performanceTracker.logPerformance(startTime)
+        try {
+            withContext(workerContext) {
+                (0 until armySize).chunked(BATCH_SIZE).forEach { chunk ->
+                    val rows = chunk.map {
+                        async { generateRow(sortedMakers, generators) { it } }
+                    }.awaitAll()
+                    rows.forEach { row -> send(row) }
+                }
+            }
+        } finally {
+            NameGenerator.clearCache()
+            EmailGenerator.clearCache()
+            performanceTracker.logPerformance(startTime)
+        }
     }
 
     suspend fun buildCsv(armySize: Int, makers: List<MakerEnum>, fakers: List<FakerEnum>): String {
         val startTime = System.nanoTime()
-        val sortedMakers = sortMakers(makers)
+        val sortedMakers = makers.sortedBy { maker ->
+            makerOrder.entries.find { maker.name.contains(it.key) }?.value ?: Int.MAX_VALUE
+        }
         val performanceTracker = PerformanceTracker(armySize, makers.size, fakers, makers)
+        val generators = initGenerators(fakers)
 
-        return StringWriter(CSV_BUFFER_SIZE).use { writer ->
-            val csvWriter = CsvWriter.builder()
-                .bufferSize(CSV_BUFFER_SIZE)
-                .build(writer)
+        return try {
+            StringWriter(CSV_BUFFER_SIZE).use { writer ->
+                CsvWriter.builder()
+                    .bufferSize(CSV_BUFFER_SIZE)
+                    .build(writer)
+                    .use { csv ->
+                        // Write header
+                        csv.writeRecord(sortedMakers.map { it.name })
 
-            csvWriter.use { csv ->
-                // Write header
-                csv.writeRecord(sortedMakers.map { it.name })
+                        // Generate and write data in batches
+                        withContext(workerContext) {
+                            (0 until armySize).chunked(BATCH_SIZE).forEach { chunk ->
+                                val rows = chunk.map {
+                                    async {
+                                        generateRow(sortedMakers, generators) { item -> item.derivedValue }
+                                    }
+                                }.awaitAll()
 
-                // Generate and write data in batches
-                withContext(workerContext) {
-                    (0 until armySize).chunked(BATCH_SIZE).forEach { chunk ->
-                        val rows = chunk.map {
-                            async {
-                                generateRow(sortedMakers, fakers) { item -> item.derivedValue }
+                                // Write batch of records efficiently
+                                rows.forEach { row ->
+                                    csv.writeRecord(*row.toTypedArray())
+                                }
                             }
-                        }.awaitAll()
-
-                        // Write batch of records efficiently
-                        rows.forEach { row ->
-                            csv.writeRecord(*row.toTypedArray())
                         }
                     }
-                }
+                writer.toString()
             }
-
-            writer.toString().also {
-                performanceTracker.logPerformance(startTime)
-            }
-        }
-    }
-
-    private fun sortMakers(makers: List<MakerEnum>): List<MakerEnum> {
-        return makers.sortedBy { maker ->
-            makerOrder.entries.find { maker.name.contains(it.key) }?.value ?: Int.MAX_VALUE
+        } finally {
+            NameGenerator.clearCache()
+            EmailGenerator.clearCache()
+            performanceTracker.logPerformance(startTime)
         }
     }
 
     private fun <T> generateRow(
         makers: List<MakerEnum>,
-        fakers: List<FakerEnum>,
+        generators: Map<MakerEnum, (List<DataTableItem>) -> DataTableItem>,
         transform: (DataTableItem) -> T
     ): List<T> {
+        // Preallocate both arrays for better memory efficiency
         val currentRowState = ArrayList<DataTableItem>(makers.size)
-        return makers.map { maker ->
-            val generator = generators[maker] ?: { _: List<DataTableItem> -> DataTableItem() }
+        val result = ArrayList<T>(makers.size)
+
+        for (maker in makers) {
+            // Avoid map lookup for each iteration using computeIfAbsent pattern
+            val generator = generators[maker] ?: EMPTY_GENERATOR
             val item = generator(currentRowState)
             currentRowState.add(item)
-            transform(item)
+            result.add(transform(item))
         }
+        return result
     }
+
+    // Cache the empty generator
+    private val EMPTY_GENERATOR: (List<DataTableItem>) -> DataTableItem = { DataTableItem() }
+
+//    private fun <T> generateRow(
+//        makers: List<MakerEnum>,
+//        generators: Map<MakerEnum, (List<DataTableItem>) -> DataTableItem>,
+//        transform: (DataTableItem) -> T
+//    ): List<T> {
+//        val currentRowState = ArrayList<DataTableItem>(makers.size)
+//        return makers.map { maker ->
+//            val generator = generators[maker] ?: { _: List<DataTableItem> -> DataTableItem() }
+//            val item = generator(currentRowState)
+//            currentRowState.add(item)
+//            transform(item)
+//        }
+//    }
 
     private inner class PerformanceTracker(
         private val totalRows: Int,

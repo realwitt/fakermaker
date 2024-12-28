@@ -7,7 +7,6 @@ import elias.fakerMaker.dto.LocationData
 import elias.fakerMaker.enums.MakerEnum
 import elias.fakerMaker.enums.StatesEnum
 import elias.fakerMaker.fakers.Address
-import elias.fakerMaker.utils.WikiUtil
 import jakarta.annotation.PostConstruct
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -72,21 +71,22 @@ object AmericaGenerator {
 
     // Pre-compute the common components
     private val streetComponents = object {
-        val suffixes = Address.streetSuffixes.map { it.abbreviation to it.fullName }
-        val trees = Address.treeNames
-        val gems = Address.gemTerms
-        val terrain = Address.terrainFeatures.map { it.abbreviation to it.fullName }
-        val landmarks = Address.landmarkTerms.map { it.abbreviation to it.fullName }
-        val directions = Address.cardinalDirections.map { it.abbreviation to it.fullName }
-        val pleasant = Address.pleasantRoadAdjectives
-        val patriotic = elias.fakerMaker.fakers.America.patrioticTerms
-        val union = elias.fakerMaker.fakers.America.union.map { it.split(" ").last() }
-        val confederate = elias.fakerMaker.fakers.America.confederates.map { it.split(" ").last() }
-        val food = elias.fakerMaker.fakers.America.food
-        val firearms = elias.fakerMaker.fakers.America.firearmTerms
-        val firearmTypes = elias.fakerMaker.fakers.America.firearmTypes
-        val diseases = elias.fakerMaker.fakers.America.disease
-        val presidents = elias.fakerMaker.fakers.America.presidents.map { it.split(" ").last() }
+        val cachedSuffixes = Address.streetSuffixes.map { it.abbreviation to it.fullName }
+        val cachedTrees = Address.treeNames
+        val cachedGems = Address.gemTerms
+        val cachedTerrain = Address.terrainFeatures.map { it.abbreviation to it.fullName }
+        val cachedLandmarks = Address.landmarkTerms.map { it.abbreviation to it.fullName }
+        val cachedDirections = Address.cardinalDirections.map { it.abbreviation to it.fullName }
+        val cachedPleasant = Address.pleasantRoadAdjectives
+        val cachedPatriotic = elias.fakerMaker.fakers.America.patrioticTerms
+        val cachedUnion = elias.fakerMaker.fakers.America.union.map { it.split(" ").last() }
+        val cachedConfederate = elias.fakerMaker.fakers.America.confederates.map { it.split(" ").last() }
+        val cachedFood = elias.fakerMaker.fakers.America.food
+        val cachedFirearmTerms = elias.fakerMaker.fakers.America.firearmTerms
+        val cachedFirearmTypes = elias.fakerMaker.fakers.America.firearmTypes
+        val cachedDiseases = elias.fakerMaker.fakers.America.disease
+        val cachedPresidents = elias.fakerMaker.fakers.America.presidents.map { it.split(" ").last() }
+        val cachedAddress2 = Address.address2.toList()
     }
 
 
@@ -304,16 +304,16 @@ object AmericaGenerator {
     }
 
     private fun getSuffix(useAbbrev: Boolean): String =
-        streetComponents.suffixes.random().let { if (useAbbrev) it.first else it.second }
+        streetComponents.cachedSuffixes.random().let { if (useAbbrev) it.first else it.second }
 
     private fun getTerrain(useAbbrev: Boolean): String =
-        streetComponents.terrain.random().let { if (useAbbrev) it.first else it.second }
+        streetComponents.cachedTerrain.random().let { if (useAbbrev) it.first else it.second }
 
     private fun getLandmark(useAbbrev: Boolean): String =
-        streetComponents.landmarks.random().let { if (useAbbrev) it.first else it.second }
+        streetComponents.cachedLandmarks.random().let { if (useAbbrev) it.first else it.second }
 
     private fun getDirection(useAbbrev: Boolean): String =
-        streetComponents.directions.random().let { if (useAbbrev) it.first else it.second }
+        streetComponents.cachedDirections.random().let { if (useAbbrev) it.first else it.second }
 
     fun address(): DataTableItem {
         val numberCount = when (Random.nextInt(3)) {
@@ -325,29 +325,29 @@ object AmericaGenerator {
         val useAbbrev = Random.nextBoolean()
 
         val addressString = when (Random.nextInt(19)) {
-            0 -> "$numberCount ${streetComponents.trees.random()} ${getSuffix(useAbbrev)}"
-            1 -> "$numberCount ${streetComponents.patriotic.random()} ${getSuffix(useAbbrev)}"
-            2 -> "$numberCount ${streetComponents.gems.random()} ${getSuffix(useAbbrev)}"
-            3 -> "$numberCount General ${streetComponents.union.random()} ${getSuffix(useAbbrev)}"
-            4 -> "$numberCount ${streetComponents.confederate.random()} ${getSuffix(useAbbrev)}"
-            5 -> "$numberCount ${streetComponents.trees.random()} ${getTerrain(useAbbrev)}"
-            6 -> "$numberCount ${streetComponents.gems.random()} ${getTerrain(useAbbrev)}"
-            7 -> "$numberCount ${streetComponents.pleasant.random()} ${getTerrain(useAbbrev)}"
-            8 -> "$numberCount ${streetComponents.trees.random()} ${getLandmark(useAbbrev)}"
-            9 -> "$numberCount ${streetComponents.patriotic.random()} ${getLandmark(useAbbrev)}"
-            10 -> "$numberCount ${getDirection(useAbbrev)} ${streetComponents.trees.random()} ${getSuffix(useAbbrev)}"
-            11 -> "$numberCount ${getDirection(useAbbrev)} ${streetComponents.pleasant.random()} ${getTerrain(useAbbrev)}"
-            12 -> "$numberCount ${streetComponents.food.random()} ${getSuffix(useAbbrev)}"
-            13 -> "$numberCount ${streetComponents.food.random()} ${getLandmark(useAbbrev)}"
-            14 -> "$numberCount ${streetComponents.firearms.random()} ${getSuffix(useAbbrev)}"
-            15 -> "$numberCount ${streetComponents.firearmTypes.random()} ${getLandmark(useAbbrev)}"
-            16 -> "$numberCount ${streetComponents.diseases.random()} ${getSuffix(useAbbrev)}"
-            17 -> "$numberCount ${streetComponents.presidents.random()} ${getSuffix(useAbbrev)}"
+            0 -> "$numberCount ${streetComponents.cachedTrees.random()} ${getSuffix(useAbbrev)}"
+            1 -> "$numberCount ${streetComponents.cachedPatriotic.random()} ${getSuffix(useAbbrev)}"
+            2 -> "$numberCount ${streetComponents.cachedGems.random()} ${getSuffix(useAbbrev)}"
+            3 -> "$numberCount General ${streetComponents.cachedUnion.random()} ${getSuffix(useAbbrev)}"
+            4 -> "$numberCount ${streetComponents.cachedConfederate.random()} ${getSuffix(useAbbrev)}"
+            5 -> "$numberCount ${streetComponents.cachedTrees.random()} ${getTerrain(useAbbrev)}"
+            6 -> "$numberCount ${streetComponents.cachedGems.random()} ${getTerrain(useAbbrev)}"
+            7 -> "$numberCount ${streetComponents.cachedPleasant.random()} ${getTerrain(useAbbrev)}"
+            8 -> "$numberCount ${streetComponents.cachedTrees.random()} ${getLandmark(useAbbrev)}"
+            9 -> "$numberCount ${streetComponents.cachedPatriotic.random()} ${getLandmark(useAbbrev)}"
+            10 -> "$numberCount ${getDirection(useAbbrev)} ${streetComponents.cachedTrees.random()} ${getSuffix(useAbbrev)}"
+            11 -> "$numberCount ${getDirection(useAbbrev)} ${streetComponents.cachedPleasant.random()} ${getTerrain(useAbbrev)}"
+            12 -> "$numberCount ${streetComponents.cachedFood.random()} ${getSuffix(useAbbrev)}"
+            13 -> "$numberCount ${streetComponents.cachedFood.random()} ${getLandmark(useAbbrev)}"
+            14 -> "$numberCount ${streetComponents.cachedFirearmTerms.random()} ${getSuffix(useAbbrev)}"
+            15 -> "$numberCount ${streetComponents.cachedFirearmTypes.random()} ${getLandmark(useAbbrev)}"
+            16 -> "$numberCount ${streetComponents.cachedDiseases.random()} ${getSuffix(useAbbrev)}"
+            17 -> "$numberCount ${streetComponents.cachedPresidents.random()} ${getSuffix(useAbbrev)}"
             else -> "$numberCount Old ${getDirection(useAbbrev)} ${getLandmark(useAbbrev)} ${getSuffix(useAbbrev)}"
         }
 
         return DataTableItem(
-            maker         = MakerEnum.ADDRESS_2,
+            maker         = MakerEnum.ADDRESS,
             fakersUsed    = null,
             originalValue = null,
             derivedValue  = addressString,
@@ -357,12 +357,20 @@ object AmericaGenerator {
     }
 
     fun address2(): DataTableItem {
-        // todo: the address 2 needs a number after it, random 1, 2, or 3 digit number
+        val baseAddress = streetComponents.cachedAddress2.random().let {
+            if (Random.nextBoolean()) it.abbreviation else it.fullName
+        }
+        val number = when (Random.nextInt(3)) {
+            0 -> Random.nextInt(1, 10)        // 1 digit (1-9)
+            1 -> Random.nextInt(10, 100)      // 2 digits (10-99)
+            else -> Random.nextInt(100, 1000)  // 3 digits (100-999)
+        }
+
         return DataTableItem(
             maker         = MakerEnum.ADDRESS_2,
             fakersUsed    = null,
             originalValue = null,
-            derivedValue  = Address.address2.random().let { if (Random.nextBoolean()) it.abbreviation else it.fullName },
+            derivedValue  = "$baseAddress $number",
             wikiUrl       = null,
             influencedBy  = null,
         )
