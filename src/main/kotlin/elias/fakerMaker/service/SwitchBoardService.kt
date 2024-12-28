@@ -7,114 +7,104 @@ import elias.fakerMaker.enums.MakerEnum
 import elias.fakerMaker.generator.AmericaGenerator
 import elias.fakerMaker.generator.EmailGenerator
 import elias.fakerMaker.generator.NameGenerator
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 import java.io.StringWriter
-import java.util.concurrent.ConcurrentHashMap
+import kotlin.coroutines.CoroutineContext
 
 @Service
-class SwitchBoardService {
+class SwitchBoardService(
+    private val workerContext: CoroutineContext = Dispatchers.Default
+) {
     private val logger = KotlinLogging.logger {}
 
-    // Cached generators for frequently used data types
-    private val cachedGenerators = ConcurrentHashMap<MakerEnum, (List<DataTableItem>) -> DataTableItem>().apply {
-        this[MakerEnum.STATE] = { AmericaGenerator.state() }
-        this[MakerEnum.CITY] = { state -> AmericaGenerator.city(state) }
-        this[MakerEnum.ZIP] = { state -> AmericaGenerator.zip(state) }
-        this[MakerEnum.PHONE] = { state -> AmericaGenerator.phone(state) }
-        this[MakerEnum.EMAIL] = { items -> EmailGenerator.email(items) }
-    }
+    // Precompute maker order for better performance
+    private val makerOrder = mapOf(
+        "NAME" to 0,
+        "STATE" to 1,
+        "CITY" to 2,
+        "ZIP" to 3,
+        "PHONE" to 4
+    )
 
-    /**
-     * Generates a specified number of data rows with given faker and maker configurations
-     * @param armySize Number of rows to generate
-     * @param fakers List of faker configurations
-     * @param makers List of maker configurations
-     * @return Flow of generated data rows
-     */
+    // Pre-initialize generators map with function references
+    private val generators: Map<MakerEnum, (List<DataTableItem>) -> DataTableItem> = mapOf(
+        MakerEnum.STATE to { _ -> AmericaGenerator.state() },
+        MakerEnum.CITY to { items -> AmericaGenerator.city(items) },
+        MakerEnum.ZIP to { items -> AmericaGenerator.zip(items) },
+        MakerEnum.PHONE to { items -> AmericaGenerator.phone(items) },
+        MakerEnum.EMAIL to { items -> EmailGenerator.email(items) },
+        MakerEnum.NAME_FIRST to { _ -> NameGenerator.firstName(null) },
+        MakerEnum.NAME_LAST to { _ -> NameGenerator.lastName(null) },
+        MakerEnum.NAME_COMPANY to { _ -> NameGenerator.companyName(null) },
+        MakerEnum.ADDRESS to { _ -> AmericaGenerator.address() },
+        MakerEnum.ADDRESS_2 to { _ -> AmericaGenerator.address2() }
+    )
+
+    // Buffer size for CSV writing
+    val CSV_BUFFER_SIZE = 32768  // 32KB, internal buffer size used by FastCSV for writing to disk/files
+    private val BATCH_SIZE = 5000 // how many rows we process together in memory before writing
+
     fun buildDataTable(armySize: Int, fakers: List<FakerEnum>, makers: List<MakerEnum>): Flow<List<DataTableItem>> = channelFlow {
         val startTime = System.nanoTime()
+        val sortedMakers = sortMakers(makers)
         val performanceTracker = PerformanceTracker(armySize, makers.size, fakers, makers)
 
-        val sortedMakers = sortMakers(makers)
-
-        coroutineScope {
-            // Generate rows concurrently
-            val generatedRows = (0 until armySize).map {
-                async(Dispatchers.Default) {
-                    generateRow(sortedMakers, fakers) { item -> item }
-                }
-            }.awaitAll()
-
-            // Send rows to channel
-            generatedRows.forEach { send(it) }
+        withContext(workerContext) {
+            (0 until armySize).chunked(BATCH_SIZE).forEach { chunk ->
+                val rows = chunk.map {
+                    async { generateRow(sortedMakers, fakers) { it } }
+                }.awaitAll()
+                rows.forEach { row -> send(row) }
+            }
         }
 
-        // Log performance metrics
         performanceTracker.logPerformance(startTime)
     }
 
-    /**
-     * Generates CSV data with specified configurations using FastCSV
-     * @param armySize Number of rows to generate
-     * @param makers List of maker configurations
-     * @param fakers List of faker configurations
-     * @return CSV formatted string
-     */
     suspend fun buildCsv(armySize: Int, makers: List<MakerEnum>, fakers: List<FakerEnum>): String {
         val startTime = System.nanoTime()
+        val sortedMakers = sortMakers(makers)
         val performanceTracker = PerformanceTracker(armySize, makers.size, fakers, makers)
 
-        val sanitizedSize = armySize
-        val sortedMakers = sortMakers(makers)
-
-        return StringWriter().use { writer ->
-            CsvWriter.builder()
+        return StringWriter(CSV_BUFFER_SIZE).use { writer ->
+            val csvWriter = CsvWriter.builder()
+                .bufferSize(CSV_BUFFER_SIZE)
                 .build(writer)
-                .use { csvWriter ->
-                    // Write header
-                    csvWriter.writeRecord(sortedMakers.map { it.name })
 
-                    // Generate and write data rows
-                    coroutineScope {
-                        val generatedRows = (0 until sanitizedSize).map {
-                            async(Dispatchers.Default) {
+            csvWriter.use { csv ->
+                // Write header
+                csv.writeRecord(sortedMakers.map { it.name })
+
+                // Generate and write data in batches
+                withContext(workerContext) {
+                    (0 until armySize).chunked(BATCH_SIZE).forEach { chunk ->
+                        val rows = chunk.map {
+                            async {
                                 generateRow(sortedMakers, fakers) { item -> item.derivedValue }
                             }
                         }.awaitAll()
 
-                        // Write each row to CSV
-                        generatedRows.forEach { row ->
-                            csvWriter.writeRecord(row)
+                        // Write batch of records efficiently
+                        rows.forEach { row ->
+                            csv.writeRecord(*row.toTypedArray())
                         }
                     }
                 }
+            }
 
-            // Get the final CSV string
             writer.toString().also {
-                // Log performance metrics
                 performanceTracker.logPerformance(startTime)
             }
         }
     }
 
-
     private fun sortMakers(makers: List<MakerEnum>): List<MakerEnum> {
         return makers.sortedBy { maker ->
-            when {
-                maker.name.contains("NAME") -> 0
-                maker.name == "STATE" -> 1
-                maker.name == "CITY" -> 2
-                maker.name == "ZIP" -> 3
-                maker.name == "PHONE" -> 4
-                else -> 5
-            }
+            makerOrder.entries.find { maker.name.contains(it.key) }?.value ?: Int.MAX_VALUE
         }
     }
 
@@ -123,40 +113,14 @@ class SwitchBoardService {
         fakers: List<FakerEnum>,
         transform: (DataTableItem) -> T
     ): List<T> {
-        val currentRowState = mutableListOf<DataTableItem>()
-
+        val currentRowState = ArrayList<DataTableItem>(makers.size)
         return makers.map { maker ->
-            val item = when (maker) {
-                MakerEnum.NAME_FIRST -> NameGenerator.firstName(fakers)
-                MakerEnum.NAME_LAST -> NameGenerator.lastName(fakers)
-                MakerEnum.NAME_COMPANY -> NameGenerator.companyName(fakers)
-                MakerEnum.STATE -> cachedGenerators[MakerEnum.STATE]?.invoke(currentRowState) ?: AmericaGenerator.state()
-                MakerEnum.CITY -> cachedGenerators[MakerEnum.CITY]?.invoke(currentRowState) ?: AmericaGenerator.city(currentRowState)
-                MakerEnum.ZIP -> cachedGenerators[MakerEnum.ZIP]?.invoke(currentRowState) ?: AmericaGenerator.zip(currentRowState)
-                MakerEnum.PHONE -> cachedGenerators[MakerEnum.PHONE]?.invoke(currentRowState) ?: AmericaGenerator.phone(currentRowState)
-                MakerEnum.ADDRESS -> AmericaGenerator.address()
-                MakerEnum.ADDRESS_2 -> AmericaGenerator.address2()
-                MakerEnum.EMAIL -> EmailGenerator.email(currentRowState)
-                MakerEnum.NUMBER_PRICE,
-                MakerEnum.NUMBER_REGULAR,
-                MakerEnum.DATE,
-                MakerEnum.BOOLEAN,
-                MakerEnum.ID,
-                MakerEnum.CREDIT_CARD_NUMBER -> DataTableItem()
-            }
+            val generator = generators[maker] ?: { _: List<DataTableItem> -> DataTableItem() }
+            val item = generator(currentRowState)
             currentRowState.add(item)
             transform(item)
         }
     }
-
-    private fun String.escapeCsvValue(): String {
-        return when {
-            contains(',') || contains('"') || contains('\n') ->
-                "\"${replace("\"", "\"\"")}\""
-            else -> this
-        }
-    }
-
 
     private inner class PerformanceTracker(
         private val totalRows: Int,
@@ -164,7 +128,6 @@ class SwitchBoardService {
         private val fakers: List<FakerEnum>,
         private val makers: List<MakerEnum>
     ) {
-
         fun logPerformance(startTime: Long) {
             val totalTime = (System.nanoTime() - startTime) / 1_000_000 // Convert to milliseconds
 
@@ -190,24 +153,24 @@ ${"\n"}
 ${armySize.toString().reversed().chunked(3).joinToString(",").reversed()} rows using $makerCount makers
 
 ${let {
-val formatted = String.format("%.2f", seconds)
-if (formatted.toDouble() == seconds) "" else "~"
-}}${String.format("%.2f", totalTime / 1000.0)} seconds total time ($totalTime ms)
+                val formatted = String.format("%.2f", seconds)
+                if (formatted.toDouble() == seconds) "" else "~"
+            }}${String.format("%.2f", totalTime / 1000.0)} seconds total time ($totalTime ms)
 ${let {
-val avgSeconds = totalTime.toFloat() / (1000.0 * armySize)
-val formatted = String.format("%.2f", avgSeconds)
-when {
-avgSeconds < 0.01 -> "<0.01 second average row creation time (${String.format("%.3f", avgMillis)} ms)"
-formatted.toDouble() == avgSeconds -> "$formatted second${if (avgSeconds > 1) "s" else ""} average row creation time (${String.format("%.3f", avgMillis)} ms)"
-else -> "~${formatted} second${if (avgSeconds > 1) "s" else ""} average row creation time (${String.format("%.3f", avgMillis)} ms)"
-}
-}}
+                val avgSeconds = totalTime.toFloat() / (1000.0 * armySize)
+                val formatted = String.format("%.2f", avgSeconds)
+                when {
+                    avgSeconds < 0.01 -> "<0.01 second average row creation time (${String.format("%.3f", avgMillis)} ms)"
+                    formatted.toDouble() == avgSeconds -> "$formatted second${if (avgSeconds > 1) "s" else ""} average row creation time (${String.format("%.3f", avgMillis)} ms)"
+                    else -> "~${formatted} second${if (avgSeconds > 1) "s" else ""} average row creation time (${String.format("%.3f", avgMillis)} ms)"
+                }
+            }}
 Fakers:${"\n"}${fakers.mapIndexed { index, faker ->
-"\t${index + 1}. ${faker.prettyName}${if (index != fakers.lastIndex) "\n" else ""}"
-}.joinToString("")}
+                "\t${index + 1}. ${faker.prettyName}${if (index != fakers.lastIndex) "\n" else ""}"
+            }.joinToString("")}
 Makers:${"\n"}${makers.mapIndexed { index, maker ->
-"\t${index + 1}. ${maker.prettyName}${if (index != makers.lastIndex) "\n" else ""}"
-}.joinToString("")}
+                "\t${index + 1}. ${maker.prettyName}${if (index != makers.lastIndex) "\n" else ""}"
+            }.joinToString("")}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """.trimIndent()
         }

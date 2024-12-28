@@ -24,6 +24,8 @@ sealed class Influencer {
 }
 
 data class DataTableItem(
+    // should we add the nickName and nullable property here or higher up?
+    // maybe we don't need the little bit of overhead by adding it to every item
     val maker: MakerEnum?               = MakerEnum.NAME_FIRST,
     val fakersUsed: List<FakerEnum>?    = listOf(FakerEnum.TECH),
     val originalValue: String?          = Tech.people.random(),

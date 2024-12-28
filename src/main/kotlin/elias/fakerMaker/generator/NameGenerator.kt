@@ -8,12 +8,13 @@ import elias.fakerMaker.fakers.books.*
 import elias.fakerMaker.fakers.movies.BackToTheFuture
 import elias.fakerMaker.fakers.sports.Baseball
 import elias.fakerMaker.fakers.sports.Basketball
-import elias.fakerMaker.fakers.tvshow.*
-import elias.fakerMaker.fakers.videogame.CallOfDuty
+import elias.fakerMaker.fakers.tvshows.*
+import elias.fakerMaker.fakers.videogames.CallOfDuty
 import elias.fakerMaker.utils.WikiUtil
 
 object NameGenerator {
-    private val characterNameFakers = listOf(
+    // Convert lists to sets for more efficient lookup
+    private val characterNameFakers = setOf(
         FakerEnum.BACK_TO_THE_FUTURE,
         FakerEnum.BASEBALL,
         FakerEnum.BASKETBALL,
@@ -32,9 +33,21 @@ object NameGenerator {
         FakerEnum.TECH,
         FakerEnum.THE_HOBBIT,
         FakerEnum.THE_OFFICE,
-        FakerEnum.THRONE_OF_GLASS,
+        FakerEnum.THRONE_OF_GLASS
     )
 
+    private val companyNameFakers = setOf(
+        FakerEnum.GRAVITY_FALLS,
+        FakerEnum.HARRY_POTTER,
+        FakerEnum.KING_OF_THE_HILL,
+        FakerEnum.MONK,
+        FakerEnum.PARKS_AND_REC,
+        FakerEnum.SILICON_VALLEY,
+        FakerEnum.TECH,
+        FakerEnum.THE_OFFICE
+    )
+
+    // Pre-compute character lists
     private val staticCharacterLists = mapOf(
         FakerEnum.BACK_TO_THE_FUTURE to BackToTheFuture.characters.toList(),
         FakerEnum.BASEBALL to Baseball.players.toList(),
@@ -54,18 +67,7 @@ object NameGenerator {
         FakerEnum.TECH to Tech.people.toList(),
         FakerEnum.THE_HOBBIT to TheHobbit.characters.toList(),
         FakerEnum.THE_OFFICE to TheOffice.characters.toList(),
-        FakerEnum.THRONE_OF_GLASS to ThroneOfGlass.characters.toList(),
-    )
-
-    private val companyNameFakers = listOf(
-        FakerEnum.GRAVITY_FALLS,
-        FakerEnum.HARRY_POTTER,
-        FakerEnum.KING_OF_THE_HILL,
-        FakerEnum.MONK,
-        FakerEnum.PARKS_AND_REC,
-        FakerEnum.SILICON_VALLEY,
-        FakerEnum.TECH,
-        FakerEnum.THE_OFFICE,
+        FakerEnum.THRONE_OF_GLASS to ThroneOfGlass.characters.toList()
     )
 
     private val staticCompanyLists = mapOf(
@@ -76,172 +78,149 @@ object NameGenerator {
         FakerEnum.PARKS_AND_REC to ParksAndRec.companies.toList(),
         FakerEnum.SILICON_VALLEY to SiliconValley.companies.toList(),
         FakerEnum.TECH to Tech.companies.toList(),
-        FakerEnum.THE_OFFICE to TheOffice.companies.toList(),
+        FakerEnum.THE_OFFICE to TheOffice.companies.toList()
     )
 
+    // Pre-compute first and last name maps for each faker
+    private val precomputedFirstNames = mutableMapOf<FakerEnum, List<String>>()
+    private val precomputedLastNames = mutableMapOf<FakerEnum, List<String>>()
 
-    private fun createCharacterName(fakers: List<FakerEnum>?): Map<FakerEnum, String> {
-        if (fakers.isNullOrEmpty()) {
-            val faker = characterNameFakers.random()
-            return characterNameSwitchBoard(listOf(faker))
-        }
-        return characterNameSwitchBoard(fakers)
-    }
-
-    // company logic
-    private fun createCompanyName(fakers: List<FakerEnum>?): Map<FakerEnum, String> {
-        if (fakers.isNullOrEmpty()) {
-            val faker = companyNameFakers.random()
-            return companySwitchboard(listOf(faker))
-        }
-        return companySwitchboard(fakers)
-    }
-
-    private fun characterNameSwitchBoard(fakers: List<FakerEnum>): Map<FakerEnum, String> {
-        val result = buildMap {
-            for (faker in fakers) {
-                staticCharacterLists[faker]?.let { list ->
-                    put(faker, list.random())
-                }
-            }
-        }
-        return result.ifEmpty {
-            val randomFaker = characterNameFakers.random()
-            staticCharacterLists[randomFaker]?.let { list ->
-                mapOf(randomFaker to list.random())
-            } ?: emptyMap()
-        }
-    }
-
-    private fun companySwitchboard(fakers: List<FakerEnum>): Map<FakerEnum, String> {
-        val result = buildMap {
-            for (faker in fakers) {
-                staticCompanyLists[faker]?.let { list ->
-                    put(faker, list.random())
-                }
-            }
-        }
-        return result.ifEmpty {
-            val randomFaker = companyNameFakers.random()
-            staticCompanyLists[randomFaker]?.let { list ->
-                mapOf(randomFaker to list.random())
-            } ?: emptyMap()
-        }
-    }
+    // Cache to store pre-generated random names for each faker
+    private val nameCache = mutableMapOf<FakerEnum, Pair<String, String>>()
 
     private val TITLE_PREFIXES = setOf("The", "Mrs.", "Mr.")
-    private fun getFirstNamesOnly(names: Map<FakerEnum, String>): Map<FakerEnum, String> = names.mapValues { (_, name) ->
-        if (name.isEmpty()) return@mapValues ""
 
-        // Find first space
-        val firstSpaceIndex = name.indexOf(' ')
-        if (firstSpaceIndex == -1) return@mapValues name
-
-        // Get first word and check if it's a title
-        val firstWord = name.substring(0, firstSpaceIndex)
-        if (firstWord !in TITLE_PREFIXES) return@mapValues firstWord
-
-        // If first word was a title, get the next word
-        val secondSpaceIndex = name.indexOf(' ', firstSpaceIndex + 1)
-        if (secondSpaceIndex == -1) {
-            // Only one word after title
-            return@mapValues name.substring(firstSpaceIndex + 1)
+    init {
+        staticCharacterLists.forEach { (faker, names) ->
+            precomputedFirstNames[faker] = names.map { name -> extractFirstName(name) }
+            precomputedLastNames[faker] = names.map { name -> extractLastName(name) }
         }
-        // Return word after title
-        name.substring(firstSpaceIndex + 1, secondSpaceIndex)
     }
 
-    private fun getLastNamesOnly(names: Map<FakerEnum, String>): Map<FakerEnum, String> = names.mapValues { (_, name) ->
-        if (name.isEmpty()) return@mapValues ""
+    private fun extractFirstName(name: String): String {
+        if (name.isEmpty()) return ""
 
-        // Start from end and find last space
+        val firstSpaceIndex = name.indexOf(' ')
+        if (firstSpaceIndex == -1) return name
+
+        val firstWord = name.substring(0, firstSpaceIndex)
+        if (firstWord !in TITLE_PREFIXES) return firstWord
+
+        val secondSpaceIndex = name.indexOf(' ', firstSpaceIndex + 1)
+        return if (secondSpaceIndex == -1) {
+            name.substring(firstSpaceIndex + 1)
+        } else {
+            name.substring(firstSpaceIndex + 1, secondSpaceIndex)
+        }
+    }
+
+    private fun extractLastName(name: String): String {
+        if (name.isEmpty()) return ""
+
         val lastSpaceIndex = name.lastIndexOf(' ')
-        if (lastSpaceIndex == -1) return@mapValues name
-
-        // Get the last word
-        name.substring(lastSpaceIndex + 1)
+        return if (lastSpaceIndex == -1) name else name.substring(lastSpaceIndex + 1)
     }
 
+    private fun getOrGenerateRandomName(faker: FakerEnum): Pair<String, String>? {
+        return nameCache.getOrPut(faker) {
+            staticCharacterLists[faker]?.random()?.let { fullName ->
+                Pair(
+                    precomputedFirstNames[faker]?.random() ?: extractFirstName(fullName),
+                    precomputedLastNames[faker]?.random() ?: extractLastName(fullName)
+                )
+            } ?: return null
+        }
+    }
 
     fun firstName(fakers: List<FakerEnum>?): DataTableItem {
+        // Quick return for empty case with cached faker
         if (fakers.isNullOrEmpty()) {
-            val name = createCharacterName(null)
-            val firstName = getFirstNamesOnly(name)
-            val (fakerUsed, derivedFirstName) = firstName.toList().random()
+            val randomFaker = characterNameFakers.random()
+            val (firstName, _) = getOrGenerateRandomName(randomFaker) ?:
+            return defaultDataTableItem(MakerEnum.NAME_FIRST)
+
             return DataTableItem(
                 maker = MakerEnum.NAME_FIRST,
-                fakersUsed = listOf(fakerUsed),
-                originalValue = name[fakerUsed],
-                derivedValue = derivedFirstName,
-                wikiUrl = WikiUtil.createFandomWikiLink(fakerUsed, derivedFirstName, false),
+                fakersUsed = listOf(randomFaker),
+                originalValue = staticCharacterLists[randomFaker]?.random(),
+                derivedValue = firstName,
+                wikiUrl = WikiUtil.createFandomWikiLink(randomFaker, firstName, false),
                 influencedBy = null
             )
         }
-        val names = createCharacterName(fakers)
-        val firstNames = getFirstNamesOnly(names)
-        val (fakerUsed, derivedName) = firstNames.toList().random()
+
+        // For provided fakers, use the first valid one
+        val validFaker = fakers.firstOrNull { it in characterNameFakers } ?: characterNameFakers.random()
+        val (firstName, _) = getOrGenerateRandomName(validFaker) ?:
+        return defaultDataTableItem(MakerEnum.NAME_FIRST)
 
         return DataTableItem(
             maker = MakerEnum.NAME_FIRST,
-            fakersUsed = listOf(fakerUsed),
-            originalValue = names[fakerUsed],
-            derivedValue = derivedName,
-            wikiUrl = WikiUtil.createFandomWikiLink(fakerUsed, names[fakerUsed]!!, false),
+            fakersUsed = listOf(validFaker),
+            originalValue = staticCharacterLists[validFaker]?.random(),
+            derivedValue = firstName,
+            wikiUrl = WikiUtil.createFandomWikiLink(validFaker, firstName, false),
             influencedBy = null
         )
     }
 
     fun lastName(fakers: List<FakerEnum>?): DataTableItem {
+        // Quick return for empty case with cached faker
         if (fakers.isNullOrEmpty()) {
-            val name = createCharacterName(null)
-            val lastName = getLastNamesOnly(name)
-            val (fakerUsed, derivedLastName) = lastName.toList().random()
+            val randomFaker = characterNameFakers.random()
+            val (_, lastName) = getOrGenerateRandomName(randomFaker) ?:
+            return defaultDataTableItem(MakerEnum.NAME_LAST)
+
             return DataTableItem(
                 maker = MakerEnum.NAME_LAST,
-                fakersUsed = listOf(fakerUsed),
-                originalValue = name[fakerUsed],
-                derivedValue = derivedLastName,
-                wikiUrl = WikiUtil.createFandomWikiLink(fakerUsed, derivedLastName, false),
+                fakersUsed = listOf(randomFaker),
+                originalValue = staticCharacterLists[randomFaker]?.random(),
+                derivedValue = lastName,
+                wikiUrl = WikiUtil.createFandomWikiLink(randomFaker, lastName, false),
                 influencedBy = null
             )
         }
-        val names = createCharacterName(fakers)
-        val lastNames = getLastNamesOnly(names)
-        val (fakerUsed, derivedName) = lastNames.toList().random()
+
+        // For provided fakers, use the first valid one
+        val validFaker = fakers.firstOrNull { it in characterNameFakers } ?: characterNameFakers.random()
+        val (_, lastName) = getOrGenerateRandomName(validFaker) ?:
+        return defaultDataTableItem(MakerEnum.NAME_LAST)
 
         return DataTableItem(
             maker = MakerEnum.NAME_LAST,
-            fakersUsed = listOf(fakerUsed),
-            originalValue = names[fakerUsed],
-            derivedValue = derivedName,
-            wikiUrl = WikiUtil.createFandomWikiLink(fakerUsed, names[fakerUsed]!!, false),
+            fakersUsed = listOf(validFaker),
+            originalValue = staticCharacterLists[validFaker]?.random(),
+            derivedValue = lastName,
+            wikiUrl = WikiUtil.createFandomWikiLink(validFaker, lastName, false),
             influencedBy = null
         )
     }
 
     fun companyName(fakers: List<FakerEnum>?): DataTableItem {
-        if (fakers.isNullOrEmpty()) {
-            val name = createCompanyName(null)
-            val (fakerUsed, companyName) = name.entries.random().toPair()
-            return DataTableItem(
-                maker = MakerEnum.NAME_COMPANY,
-                fakersUsed = listOf(fakerUsed),
-                originalValue = companyName,
-                derivedValue = companyName,
-                wikiUrl = WikiUtil.createFandomWikiLink(fakerUsed, companyName, false),
-                influencedBy = null
-            )
+        val validFaker = when {
+            fakers.isNullOrEmpty() -> companyNameFakers.random()
+            else -> fakers.firstOrNull { it in companyNameFakers } ?: companyNameFakers.random()
         }
-        val names = createCompanyName(fakers)
-        val (fakerUsed, companyName) = names.entries.random().toPair()
+
+        val companyName = staticCompanyLists[validFaker]?.random() ?:
+        return defaultDataTableItem(MakerEnum.NAME_COMPANY)
 
         return DataTableItem(
             maker = MakerEnum.NAME_COMPANY,
-            fakersUsed = listOf(fakerUsed),
+            fakersUsed = listOf(validFaker),
             originalValue = companyName,
             derivedValue = companyName,
-            wikiUrl = WikiUtil.createFandomWikiLink(fakerUsed, companyName, false),
+            wikiUrl = WikiUtil.createFandomWikiLink(validFaker, companyName, false),
             influencedBy = null
         )
     }
+
+    private fun defaultDataTableItem(maker: MakerEnum) = DataTableItem(
+        maker = maker,
+        fakersUsed = null,
+        originalValue = null,
+        derivedValue = "",
+        wikiUrl = null,
+        influencedBy = null
+    )
 }

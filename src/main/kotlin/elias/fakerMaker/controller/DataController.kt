@@ -1,5 +1,7 @@
 package elias.fakerMaker.controller
 
+import elias.fakerMaker.dto.DataTableItem
+import elias.fakerMaker.type.SchemaOptions
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.MakerEnum
 import elias.fakerMaker.service.SwitchBoardService
@@ -7,10 +9,8 @@ import kotlinx.coroutines.reactor.asFlux
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Flux
 
 @RestController
 @RequestMapping("/api/fakermaker")
@@ -18,14 +18,17 @@ class DataController(
     private val switchBoardService: SwitchBoardService
 ) {
     @PostMapping("/dataTable/{count}")
-    fun populateDataTable(@PathVariable count: Int) = switchBoardService
-        // todo this will use a paging object later to return a default of maybe 20 records at a time
-        .buildDataTable(
-            count,
-            listOf(FakerEnum.GRAVITY_FALLS, FakerEnum.KING_OF_THE_HILL, FakerEnum.HARRY_POTTER),
-            listOf(MakerEnum.ADDRESS, MakerEnum.PHONE, MakerEnum.NAME_FIRST, MakerEnum.ZIP, MakerEnum.STATE)
-        )
-        .asFlux()
+    fun populateDataTable(@PathVariable count: Int): Flux<List<DataTableItem>> {
+        val tableData = switchBoardService
+            .buildDataTable(
+                count,
+                listOf(FakerEnum.GRAVITY_FALLS, FakerEnum.KING_OF_THE_HILL, FakerEnum.HARRY_POTTER),
+                listOf(MakerEnum.ADDRESS, MakerEnum.PHONE, MakerEnum.NAME_FIRST, MakerEnum.ZIP, MakerEnum.STATE)
+            )
+            .asFlux()
+
+        return tableData
+    }
 
     @PostMapping("/download/{count}")
     suspend fun getFakeData(@PathVariable count: Int) : ResponseEntity<String> {
@@ -41,6 +44,14 @@ class DataController(
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=fakeData.csv")
             .contentType(MediaType.parseMediaType("text/csv"))
             .body(csvData)
+    }
+
+    @GetMapping("/schema")
+    fun getSchema(): SchemaOptions {
+        val fakers = FakerEnum.entries.map { faker -> faker.prettyName }
+        val makers = MakerEnum.entries.map { maker -> maker.prettyName }
+
+        return SchemaOptions(fakers, makers)
     }
 
     // for simulate random schemas

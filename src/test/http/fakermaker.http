@@ -1,0 +1,51 @@
+### Generate test data table with 50 records
+POST http://localhost:8181/api/fakermaker/dataTable/50
+
+### Download 1M records with specified schema
+POST http://localhost:8181/api/fakermaker/download/1000000
+Content-Type: application/json
+
+{
+  "sessionID": "123123123234l",
+  "fakers": [
+    "Harry Potter",
+    "Lord of the Rings"
+  ],
+  "makers": [
+    {
+      "makerType": "date",
+      "range": [
+        "JAN-01-1970",
+        "FEB-04-2006"
+      ],
+      "nickName": "birthday",
+      "nullable": false
+    },
+    {
+      "price": "sticker cost",
+      "range": [
+        0,
+        420.69
+      ],
+      "nullable": false
+    },
+    {
+      "makerType": "email",
+      "nickName": "business email",
+      "nullable": false
+    },
+    {
+      "makerType": "address2",
+      "nickName": "address2",
+      "nullable": true
+    },
+    {
+      "makerType": "first name",
+      "nickName": "first",
+      "nullable": false
+    }
+  ]
+}
+
+### Retrieve available schema definitions
+GET http://localhost:8181/api/fakermaker/schema

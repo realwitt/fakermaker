@@ -20,11 +20,8 @@ import kotlin.random.Random
 
 @Component
 object AmericaGenerator {
-    private lateinit var americaData: AmericaData
     private val logger = KotlinLogging.logger {}
-    private val excludedStates = setOf(
-        StatesEnum.state
-    )
+    private lateinit var americaData: AmericaData
     private val statesWithAreaCodes = setOf(
         StatesEnum.AK, StatesEnum.AL, StatesEnum.AZ, StatesEnum.AR, StatesEnum.CA, StatesEnum.CO,
         StatesEnum.CT, StatesEnum.DE, StatesEnum.FL, StatesEnum.GA, StatesEnum.HI, StatesEnum.ID,
@@ -35,6 +32,9 @@ object AmericaGenerator {
         StatesEnum.OR, StatesEnum.PA, StatesEnum.RI, StatesEnum.SC, StatesEnum.SD, StatesEnum.TN,
         StatesEnum.TX, StatesEnum.UT, StatesEnum.VT, StatesEnum.VA, StatesEnum.WA, StatesEnum.WV,
         StatesEnum.WI, StatesEnum.WY, )
+    private val validStates: List<StatesEnum> by lazy {
+        StatesEnum.entries.filterNot { it == StatesEnum.state }
+    }
 
     // Pre-compute the common components
     // opted for this approach to still allow uncommon states in the final data, like American Samoa, Palau, Guam, etc
@@ -48,6 +48,27 @@ object AmericaGenerator {
             }
             .filterValues { it.isNotEmpty() }
     }
+
+    private val stateCityZipCache: Map<StatesEnum, List<Triple<String, List<String>, LocationData>>> by lazy {
+        americaData
+            .filter { (state, _) -> state in validStates }
+            .mapValues { (_, cities) ->
+                cities.entries
+                    .map { (city, locationData) ->
+                        Triple(city, locationData.zipCodes, locationData)
+                    }
+                    .toList()
+            }
+    }
+
+    private val stateCityCache: Map<StatesEnum, List<String>> by lazy {
+        americaData
+            .filter { (state, _) -> state in validStates }  // Using validStates instead of excludedStates
+            .mapValues { (_, cities) ->
+                cities.keys.toList()
+            }
+    }
+
 
     // Pre-compute the common components
     private val streetComponents = object {
@@ -106,22 +127,35 @@ object AmericaGenerator {
     }
 
     private fun generateRandomStateCityZip(): Triple<StatesEnum, String, String> {
-        val state = StatesEnum.entries
-            .filter { it !in excludedStates }
-            .random()
-        val city = americaData[state]?.entries?.random()?.key ?: run {
-            throw IllegalStateException("Somehow the state $state has no cities...")
-        }
-        val zip = americaData[state]?.get(city)?.zipCodes?.random() ?: run {
-            throw IllegalStateException("City '$city' somehow has no zip code")
-        }
+        val state = stateCityZipCache.keys.random()
+
+        // Get random city data for that state
+        val (city, zipCodes, _) = stateCityZipCache[state]?.randomOrNull() ?:
+        throw IllegalStateException("No cities found for state $state")
+
+        // Get random zip code for that city
+        val zip = zipCodes.randomOrNull() ?:
+        throw IllegalStateException("No zip codes found for city $city in state $state")
+
         return Triple(state, city, zip)
     }
 
+    private fun List<DataTableItem>?.findState(): StatesEnum? {
+        if (this == null) return null
+
+        return find { it.maker == MakerEnum.STATE }
+            ?.influencedBy
+            ?.find { it is Influencer.State }
+            ?.let { influencer ->
+                when (influencer) {
+                    is Influencer.State -> influencer.state
+                    else -> null
+                }
+            }
+    }
+
     fun state(): DataTableItem {
-        val state = StatesEnum.entries
-            .filter { it !in excludedStates }
-            .random()
+        val state = validStates.random()
 
         return DataTableItem(
             maker         = MakerEnum.STATE,
@@ -134,35 +168,19 @@ object AmericaGenerator {
     }
 
     fun city(existingItems: List<DataTableItem>?): DataTableItem {
-        // the switchboard service will order the MakerEnums for us
-        // if zip exists, it will be influenced by city, never the other way around
-
-        // check if state already exists
-        val state = existingItems
-            ?.find { it.maker == MakerEnum.STATE }
-            ?.influencedBy
-            ?.find { it is Influencer.State }
-            ?.let { influenceType ->
-                when (influenceType) {
-                    is Influencer.State -> influenceType.state
-                    else -> null
-                }
-                // if not, generate random valid one
-            } ?: StatesEnum.entries
-            .filter { it !in excludedStates }
-            .random()
-
-        val city = americaData[state]?.entries?.random()?.key ?: run {
-            throw IllegalStateException("Somehow the state $state has no cities?? ;-;")
-        }
+        val state = existingItems.findState() ?: validStates.random()
+        val cities = stateCityCache[state] ?: throw IllegalStateException(
+            "No cities found for state $state. This should never happen as we filter invalid states."
+        )
+        val city = cities.random()
 
         return DataTableItem(
-            maker         = MakerEnum.CITY,
-            fakersUsed    = null,
+            maker = MakerEnum.CITY,
+            fakersUsed = null,
             originalValue = "$city, $state",
-            derivedValue  = city,
-            wikiUrl       = WikiUtil.createCityWikiLink(state, city),
-            influencedBy  = listOf(
+            derivedValue = city,
+            wikiUrl = WikiUtil.createCityWikiLink(state, city),
+            influencedBy = listOf(
                 Influencer.State(state),
                 Influencer.City(city)
             )
@@ -173,61 +191,28 @@ object AmericaGenerator {
         val (state, city, zip) = if (existingItems.isNullOrEmpty()) {
             generateRandomStateCityZip()
         } else {
-            // Try to find city first (which will have state)
-            existingItems.find { it.maker == MakerEnum.CITY }
-                ?.let { cityDataTableItem ->
-                    val state = cityDataTableItem.influencedBy
-                        ?.find { it is Influencer.State }
-                        ?.let { influencer ->
-                            when (influencer) {
-                                is Influencer.State -> influencer.state
-                                else -> null
-                            }
-                        }
-                    val city = cityDataTableItem.influencedBy
-                        ?.find { it is Influencer.City }
-                        ?.let { influencer ->
-                            when (influencer) {
-                                is Influencer.City -> influencer.city
-                                else -> null
-                            }
-                        }
-                    if (state != null && city != null) {
-                        val zip = americaData[state]?.get(city)?.zipCodes?.random()
-                        if (zip != null) Triple(state, city, zip) else null
-                    } else {
-                        throw IllegalStateException("Somehow the city ${city},${state} has no zip?? ;-;")
-                    }
-                }
-            // If no city found, try to find state
-                ?: existingItems.find { it.maker == MakerEnum.STATE }
-                    ?.influencedBy
-                    ?.find { it is Influencer.State }
-                    ?.let { influenceType ->
-                        when (influenceType) {
-                            is Influencer.State -> {
-                                val state = influenceType.state
-                                val city = americaData[state]?.entries?.random()?.key
-                                val zip = americaData[state]?.get(city)?.zipCodes?.random()
-                                if (city != null && zip != null) Triple(state, city, zip)
-                                else {
-                                    throw IllegalStateException("Somehow the city ${city},${state} has no zip?? ;-;")
-                                }
-                            }
-                            else -> null
-                        }
-                    }
-                // No city or state found, generate everything randomly
-                ?: generateRandomStateCityZip()
+            // Try to find existing state from city or state maker
+            val existingState = existingItems.findState()
+
+            if (existingState != null) {
+                // For existing state, still generate random city and zip
+                val (city, zipCodes, _) = stateCityZipCache[existingState]?.randomOrNull() ?:
+                throw IllegalStateException("No cities found for state $existingState")
+                val zip = zipCodes.randomOrNull() ?:
+                throw IllegalStateException("No zip codes found for city $city in state $existingState")
+                Triple(existingState, city, zip)
+            } else {
+                generateRandomStateCityZip()
+            }
         }
 
         return DataTableItem(
-            maker         = MakerEnum.ZIP,
-            fakersUsed    = null,
+            maker = MakerEnum.ZIP,
+            fakersUsed = null,
             originalValue = "$city, $state $zip",
-            derivedValue  = zip,
-            wikiUrl       = WikiUtil.createCityWikiLink(state, city),
-            influencedBy  = listOf(
+            derivedValue = zip,
+            wikiUrl = WikiUtil.createCityWikiLink(state, city),
+            influencedBy = listOf(
                 Influencer.State(state),
                 Influencer.City(city),
                 Influencer.Zip(zip)

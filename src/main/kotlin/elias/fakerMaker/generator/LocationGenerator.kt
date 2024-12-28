@@ -1,10 +1,10 @@
 package elias.fakerMaker.generator
 
 import elias.fakerMaker.enums.FakerEnum
-import elias.fakerMaker.fakers.tvshow.GravityFalls
-import elias.fakerMaker.fakers.tvshow.ParksAndRec
-import elias.fakerMaker.fakers.tvshow.Pokemon
-import elias.fakerMaker.fakers.tvshow.TheOffice
+import elias.fakerMaker.fakers.tvshows.GravityFalls
+import elias.fakerMaker.fakers.tvshows.ParksAndRec
+import elias.fakerMaker.fakers.tvshows.Pokemon
+import elias.fakerMaker.fakers.tvshows.TheOffice
 
 object LocationGenerator {
     private fun location(fakers: List<FakerEnum>): Map<FakerEnum, String> {

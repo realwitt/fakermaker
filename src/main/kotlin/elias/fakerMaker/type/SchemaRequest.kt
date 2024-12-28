@@ -1,4 +1,4 @@
-package elias.fakerMaker.dto
+package elias.fakerMaker.type
 
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.MakerEnum

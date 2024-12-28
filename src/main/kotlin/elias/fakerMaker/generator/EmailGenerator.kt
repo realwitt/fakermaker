@@ -6,35 +6,12 @@ import elias.fakerMaker.enums.MakerEnum
 import elias.fakerMaker.fakers.Adjectives
 import elias.fakerMaker.fakers.Tech
 import elias.fakerMaker.fakers.books.GameOfThrones
-import elias.fakerMaker.fakers.tvshow.*
+import elias.fakerMaker.fakers.tvshows.*
 import elias.fakerMaker.utils.WikiUtil
 import kotlin.random.Random
 
 object EmailGenerator {
-    private val emailComponents = object {
-        val localPartFormats = listOf(
-            { first: String, last: String -> "$first$last" },
-            { first: String, last: String -> "$first$last${Random.nextInt(999)}" },
-            { first: String, last: String -> "${first.first()}$last" },
-            { first: String, last: String -> "${first.first()}$last${Random.nextInt(999)}" }
-        )
-
-        val singleNameFormats = listOf(
-            { name: String -> name },
-            { name: String -> "$name${Random.nextInt(999)}" },
-            { name: String -> "$name${Adjectives.quirky.random()}" },
-            { name: String -> "$name${Tech.buzzwords.random()}" },
-            { _: String -> Tech.buzzwords.random() }
-        )
-
-        val randomLocalFormats = listOf(
-            { -> Tech.people.random() },
-            { -> "${Tech.buzzwords.random()}${Random.nextInt(999)}" },
-            { -> "${Adjectives.quirky.random()}${Tech.buzzwords.random()}" }
-        )
-    }
-
-    private val validEmailFakers = listOf(
+    private val validEmailFakers = setOf(
         FakerEnum.GAME_OF_THRONES,
         FakerEnum.GRAVITY_FALLS,
         FakerEnum.KING_OF_THE_HILL,
@@ -47,148 +24,173 @@ object EmailGenerator {
     )
 
     private val staticDomainLists = mapOf(
-        FakerEnum.GRAVITY_FALLS to GravityFalls.companies.map { it.replace("'", "") }.toList(),
-        FakerEnum.KING_OF_THE_HILL to KingOfTheHill.companies.map { it.replace("'", "") }.toList(),
-        FakerEnum.MONK to Monk.companies.map { it.replace("'", "") }.toList(),
-        FakerEnum.PARKS_AND_REC to ParksAndRec.companies.map { it.replace("'", "") }.toList(),
-        FakerEnum.POKEMON to Pokemon.locations.map { it.replace("'", "") }.toList(),
-        FakerEnum.TECH to Tech.companies.map { it.replace("'", "") }.toList(),
-        FakerEnum.THE_OFFICE to TheOffice.companies.map { it.replace("'", "") }.toList(),
-        FakerEnum.SILICON_VALLEY to SiliconValley.companies.map { it.replace("'", "") }.toList(),
-        FakerEnum.GAME_OF_THRONES to GameOfThrones.locations.map { it.replace("'", "") }.toList()
+        FakerEnum.GRAVITY_FALLS to GravityFalls.companies,
+        FakerEnum.KING_OF_THE_HILL to KingOfTheHill.companies,
+        FakerEnum.MONK to Monk.companies,
+        FakerEnum.PARKS_AND_REC to ParksAndRec.companies,
+        FakerEnum.POKEMON to Pokemon.locations,
+        FakerEnum.TECH to Tech.companies,
+        FakerEnum.THE_OFFICE to TheOffice.companies,
+        FakerEnum.SILICON_VALLEY to SiliconValley.companies,
+        FakerEnum.GAME_OF_THRONES to GameOfThrones.locations
     )
 
-    private fun createEmailDomain(fakers: List<FakerEnum>?): Map<FakerEnum, String> {
-        if (fakers.isNullOrEmpty()) {
-            val faker = validEmailFakers.random()
-            return domainSwitchboard(listOf(faker))
-        }
-        return domainSwitchboard(fakers)
+    // Pre-compute filtered domain lists to avoid repeated filtering operations
+    private val sanitizedDomainLists = staticDomainLists.mapValues { (_, domains) ->
+        domains.map { it.replace("'", "").filter { c -> c.isLetterOrDigit() }.lowercase() }
     }
 
-    private fun domainSwitchboard(fakers: List<FakerEnum>): Map<FakerEnum, String> {
-        val result = buildMap {
-            for (faker in fakers) {
-                staticDomainLists[faker]?.let { list ->
-                    put(faker, list.random())
-                }
-            }
-        }
-        return result.ifEmpty {
-            val randomFaker = validEmailFakers.random()
-            staticDomainLists[randomFaker]?.let { list ->
-                mapOf(randomFaker to list.random())
-            } ?: emptyMap()
-        }
-    }
+    // Cache common values and computations
+    private const val COM_TLD = ".com"
+    private const val ORG_TLD = ".org"
+    private val emailProviders = Tech.emailProviders.toList() // Convert to list for good random access
 
-    private fun generateLocalPartFromFullName(firstName: String, lastName: String): String =
-        emailComponents.localPartFormats.random()
-            .invoke(firstName, lastName)
-            .lowercase()
-            .filterNot { it.isWhitespace() }
+    private val localPartGenerators = object {
+        fun fromFullName(first: String, last: String): String = when(Random.nextInt(4)) {
+            0 -> "$first$last"
+            1 -> "$first$last${Random.nextInt(999)}"
+            2 -> "${first.first()}$last"
+            else -> "${first.first()}$last${Random.nextInt(999)}"
+        }.lowercase()
 
-    private fun generateLocalPartFromSingleName(name: String): String =
-        emailComponents.singleNameFormats.random()
-            .invoke(name)
-            .lowercase()
-            .filterNot { it.isWhitespace() }
+        fun fromSingleName(name: String): String = when(Random.nextInt(5)) {
+            0 -> name
+            1 -> "$name${Random.nextInt(999)}"
+            2 -> "$name${Adjectives.quirky.random()}"
+            3 -> "$name${Tech.buzzwords.random()}"
+            else -> Tech.buzzwords.random()
+        }.lowercase()
 
-    private fun generateRandomLocalPart(): String =
-        emailComponents.randomLocalFormats.random()
-            .invoke()
-            .lowercase()
-            .filterNot { it.isWhitespace() }
-
-    private fun createLocalPart(dataTableItems: List<DataTableItem>?): String {
-        val firstName = dataTableItems?.find { it.maker == MakerEnum.NAME_FIRST }?.derivedValue.orEmpty()
-        val lastName = dataTableItems?.find { it.maker == MakerEnum.NAME_LAST }?.derivedValue.orEmpty()
-
-        return when {
-            firstName.isNotEmpty() && lastName.isNotEmpty() -> generateLocalPartFromFullName(firstName, lastName)
-            firstName.isNotEmpty() -> generateLocalPartFromSingleName(firstName)
-            lastName.isNotEmpty() -> generateLocalPartFromSingleName(lastName)
-            else -> generateRandomLocalPart()
-        }
-    }
-
-    private fun selectNonBusinessTld(): String {
-        return when (Random.nextDouble()) {
-            in 0.85..0.90 -> ".org"
-            in 0.90..0.95 -> Tech.TLDs.random()
-            else -> ".com"  // 90% chance (0.0-0.85 and 0.95-1.0)
-        }
+        fun random(): String = when(Random.nextInt(3)) {
+            0 -> Tech.people.random()
+            1 -> "${Tech.buzzwords.random()}${Random.nextInt(999)}"
+            else -> "${Adjectives.quirky.random()}${Tech.buzzwords.random()}"
+        }.lowercase()
     }
 
     fun email(dataTableItems: List<DataTableItem>?): DataTableItem {
-        val localPart = createLocalPart(dataTableItems)
-        val companyItem = dataTableItems?.find { it.maker == MakerEnum.NAME_COMPANY }
-        val firstName = dataTableItems?.find { it.maker == MakerEnum.NAME_FIRST }?.derivedValue
-        val lastName = dataTableItems?.find { it.maker == MakerEnum.NAME_LAST }?.derivedValue
+        if (dataTableItems == null) {
+            return generateDefaultEmail(
+                localPart =  localPartGenerators.random().filterNot { it.isWhitespace() },
+                dataTableItems = null
+            )
+        }
+
+        val companyItem = dataTableItems.find { it.maker == MakerEnum.NAME_COMPANY }
+        val firstNameItem = dataTableItems.find { it.maker == MakerEnum.NAME_FIRST }
+        val lastNameItem = dataTableItems.find { it.maker == MakerEnum.NAME_LAST }
+
+        val localPart = createLocalPart(firstNameItem?.derivedValue, lastNameItem?.derivedValue)
 
         val random = Random.nextDouble()
+        return when {
+            // Company domain (50% chance if company exists)
+            companyItem != null && random < 0.5 -> createCompanyEmail(localPart, companyItem)
 
-        // If we have a company and hit the 50% chance
-        val companyDomain = companyItem?.takeIf { random < 0.5 }?.derivedValue
-            ?.filter { it.isLetterOrDigit() }
-            ?.lowercase()
-            ?.let { domain ->
-                val tld = if (Random.nextDouble() < 0.8) ".com" else Tech.TLDs.random()
-                DataTableItem(
-                    maker = MakerEnum.EMAIL,
-                    fakersUsed = companyItem.fakersUsed,
-                    originalValue = companyItem.derivedValue,
-                    derivedValue = "$localPart@$domain$tld",
-                    wikiUrl = companyItem.wikiUrl,
-                    influencedBy = null
-                )
+            // Personal domain (5% chance if both names exist)
+            firstNameItem != null && lastNameItem != null && random in 0.5..0.55 ->
+                createPersonalEmail(localPart, firstNameItem.derivedValue, lastNameItem.derivedValue)
+
+            // Default case
+            else -> {
+                val relevantItems = dataTableItems.filter {
+                    it.maker == MakerEnum.NAME_FIRST || it.maker == MakerEnum.NAME_LAST
+                }
+                generateDefaultEmail(localPart, relevantItems)
             }
+        }
+    }
 
-        // If we have both names and hit the 5% chance (between 0.5 and 0.55)
-        val personalDomain = if (random in 0.5..0.55 && firstName != null && lastName != null) {
-            val domain = "$firstName$lastName".filter { it.isLetterOrDigit() }.lowercase()
-            DataTableItem(
-                maker = MakerEnum.EMAIL,
-                fakersUsed = null,
-                originalValue = null,
-                derivedValue = "$localPart@$domain.com", // Personal domains usually use .com
-                wikiUrl = null,
-                influencedBy = null
-            )
-        } else null
+    private fun createLocalPart(firstName: String?, lastName: String?): String = when {
+        !firstName.isNullOrEmpty() && !lastName.isNullOrEmpty() ->
+            localPartGenerators.fromFullName(firstName, lastName)
+        !firstName.isNullOrEmpty() -> localPartGenerators.fromSingleName(firstName)
+        !lastName.isNullOrEmpty() -> localPartGenerators.fromSingleName(lastName)
+        else -> localPartGenerators.random().filterNot { it.isWhitespace() }
+    }
 
-        // If neither hit, use email provider
-        return companyDomain ?: personalDomain ?: generateDefaultEmail(localPart, dataTableItems)
+    private fun createCompanyEmail(localPart: String, companyItem: DataTableItem): DataTableItem {
+        val domain = companyItem.derivedValue.filter { it.isLetterOrDigit() }.lowercase()
+        val tld = if (Random.nextDouble() < 0.8) COM_TLD else Tech.TLDs.random()
+
+        return DataTableItem(
+            maker = MakerEnum.EMAIL,
+            fakersUsed = companyItem.fakersUsed,
+            originalValue = companyItem.derivedValue,
+            derivedValue = "$localPart@$domain$tld",
+            wikiUrl = companyItem.wikiUrl,
+            influencedBy = null
+        )
+    }
+
+    private fun createPersonalEmail(localPart: String, firstName: String, lastName: String): DataTableItem {
+        val domain = "$firstName$lastName".filter { it.isLetterOrDigit() }.lowercase()
+        return DataTableItem(
+            maker = MakerEnum.EMAIL,
+            fakersUsed = null,
+            originalValue = null,
+            derivedValue = "$localPart@$domain$COM_TLD",
+            wikiUrl = null,
+            influencedBy = null
+        )
     }
 
     private fun generateDefaultEmail(
         localPart: String,
-        dataTableItems: List<DataTableItem>?,
+        dataTableItems: List<DataTableItem>?
     ): DataTableItem {
-        // If forceEmailProvider is true, skip the faker domain logic entirely
-        val domainFakers = dataTableItems
-            ?.filter { it.maker in listOf(MakerEnum.NAME_FIRST, MakerEnum.NAME_LAST) }
-            ?.flatMap { it.fakersUsed ?: emptyList() }
-            ?.filter { it in validEmailFakers }
-
-        val domainMap = createEmailDomain(domainFakers)
-        val (fakerUsed, domainValue) = if (Random.nextBoolean() && domainMap.isNotEmpty()) {
-            domainMap.entries.random().toPair()
-        } else {
-            null to Tech.emailProviders.random()
+        // Quick return for common case
+        if (dataTableItems.isNullOrEmpty()) {
+            return DataTableItem(
+                maker = MakerEnum.EMAIL,
+                fakersUsed = null,
+                originalValue = null,
+                derivedValue = "$localPart@${emailProviders.random()}",
+                wikiUrl = null,
+                influencedBy = null
+            )
         }
 
-        val domain = when {
-            fakerUsed != null -> "${domainValue.filter { it.isLetterOrDigit() }}${selectNonBusinessTld()}"
-            else -> domainValue
+        val domainFakers = buildSet {
+            dataTableItems.forEach { item ->
+                item.fakersUsed?.forEach { faker ->
+                    if (faker in validEmailFakers) {
+                        add(faker)
+                    }
+                }
+            }
+        }
+
+        // Decide domain strategy
+        val useValidFaker = domainFakers.isNotEmpty() && Random.nextBoolean()
+        if (!useValidFaker) {
+            return DataTableItem(
+                maker = MakerEnum.EMAIL,
+                fakersUsed = null,
+                originalValue = null,
+                derivedValue = "$localPart@${emailProviders.random()}",
+                wikiUrl = null,
+                influencedBy = null
+            )
+        }
+
+        // Use faker domain
+        val faker = domainFakers.random()
+        val domainValue = sanitizedDomainLists[faker]?.random()
+            ?: return generateDefaultEmail(localPart, null)
+
+        val tld = when(Random.nextDouble()) {
+            in 0.85..0.90 -> ORG_TLD
+            in 0.90..0.95 -> Tech.TLDs.random()
+            else -> COM_TLD
         }
 
         return DataTableItem(
             maker = MakerEnum.EMAIL,
-            fakersUsed = fakerUsed?.let { listOf(it) },
-            originalValue = if (fakerUsed != null) domainValue else null,
-            derivedValue = "$localPart@${domain.lowercase()}",
-            wikiUrl = fakerUsed?.let { WikiUtil.createFandomWikiLink(it, domainValue, false) },
+            fakersUsed = listOf(faker),
+            originalValue = domainValue,
+            derivedValue = "$localPart@$domainValue$tld",
+            wikiUrl = WikiUtil.createFandomWikiLink(faker, domainValue, false),
             influencedBy = null
         )
     }
