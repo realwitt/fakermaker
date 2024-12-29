@@ -42,7 +42,8 @@ object CreditCardGenerator {
             originalValue = info.displayName,
             derivedValue = number,
             wikiUrl = null,
-            influencedBy = null
+            influencedBy = null,
+            idTypeEnum = null
         )
     }
 
@@ -64,7 +65,8 @@ object CreditCardGenerator {
             originalValue = "CVV for $cardType",
             derivedValue = cvv,
             wikiUrl = null,
-            influencedBy = null
+            influencedBy = null,
+            idTypeEnum = null
         )
     }
 

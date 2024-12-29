@@ -176,9 +176,6 @@ object NameGenerator {
             derivedValue = extractFirstName(fullName),
             wikiUrl = WikiUtil.createFandomWikiLink(validFaker, fullName, false),
             influencedBy =  null,
-            dateRange = null,
-            numberRange = null,
-            priceRange = null,
             idTypeEnum = null,
         )
     }
@@ -206,9 +203,6 @@ object NameGenerator {
                     derivedValue = lastName,
                     wikiUrl = WikiUtil.createFandomWikiLink(faker, fullName, false),
                     influencedBy =  null,
-                    dateRange = null,
-                    numberRange = null,
-                    priceRange = null,
                     idTypeEnum = null,
                 )
             }
@@ -226,9 +220,6 @@ object NameGenerator {
             derivedValue = extractLastName(fullName),
             wikiUrl = WikiUtil.createFandomWikiLink(validFaker, fullName, false),
             influencedBy =  null,
-            dateRange = null,
-            numberRange = null,
-            priceRange = null,
             idTypeEnum = null,
         )
     }
@@ -253,9 +244,6 @@ object NameGenerator {
                         derivedValue = companyName,
                         wikiUrl = WikiUtil.createFandomWikiLink(firstNameFaker, companyName, true),
                         influencedBy =  null,
-                        dateRange = null,
-                        numberRange = null,
-                        priceRange = null,
                         idTypeEnum = null,
                     )
                 }
@@ -275,9 +263,6 @@ object NameGenerator {
             derivedValue = companyName,
             wikiUrl = WikiUtil.createFandomWikiLink(selectedFaker, companyName, true),
             influencedBy =  null,
-            dateRange = null,
-            numberRange = null,
-            priceRange = null,
             idTypeEnum = null,
         )
     }

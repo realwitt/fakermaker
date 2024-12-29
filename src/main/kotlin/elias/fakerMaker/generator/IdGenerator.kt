@@ -34,7 +34,8 @@ object IdGenerator {
             originalValue = idType.prettyName,
             derivedValue = generatedId,
             wikiUrl = null,
-            influencedBy = null
+            influencedBy = null,
+            idTypeEnum = idType
         )
     }
 

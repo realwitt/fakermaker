@@ -5,7 +5,6 @@ import elias.fakerMaker.enums.IdTypeEnum
 import elias.fakerMaker.enums.MakerEnum
 import elias.fakerMaker.enums.StatesEnum
 import elias.fakerMaker.fakers.Tech
-import java.time.LocalDate
 
 
 sealed class Influencer {
@@ -24,9 +23,6 @@ data class DataTableItem(
     val derivedValue: String            = originalValue?.split(" ")?.first() ?: "",
     val wikiUrl: String?                = "",
     val influencedBy: List<Influencer>? = listOf( Influencer.State(StatesEnum.AR), ),
-    val dateRange: Pair<LocalDate, LocalDate>? = Pair(LocalDate.now(), LocalDate.now()),
-    val numberRange: Pair<Number, Number>?     = Pair(0, 100),
-    val priceRange: Pair<Double, Double>?      = Pair(1.0, 100.0),
     val idTypeEnum: IdTypeEnum?                = IdTypeEnum.UUID,
 ) {
     override fun toString(): String {

@@ -48,8 +48,8 @@ class SwitchBoardService(
         when (config.makerEnum) {
             MakerEnum.NUMBER_PRICE -> { _ ->
                 NumberGenerator.priceRange(
-                    config.priceRange?.first?.toInt(),
-                    config.priceRange?.second?.toInt()
+                    min = config.priceRange?.first,  // Pass Double directly
+                    max = config.priceRange?.second   // Pass Double directly
                 )
             }
             MakerEnum.NUMBER_REGULAR -> { _ ->
@@ -81,28 +81,6 @@ class SwitchBoardService(
             MakerEnum.BOOLEAN -> { _ -> BooleanGenerator.bool() }
         }
     }
-
-//    private fun initGenerators(fakers: List<FakerEnum>): Map<MakerEnum, (List<DataTableItem>) -> DataTableItem> = mapOf(
-//        MakerEnum.STATE to { _ -> AmericaGenerator.state() },
-//        MakerEnum.CITY to { items -> AmericaGenerator.city(items) },
-//        MakerEnum.ZIP to { items -> AmericaGenerator.zip(items) },
-//        MakerEnum.PHONE to { items -> AmericaGenerator.phone(items) },
-//        MakerEnum.EMAIL to { items -> EmailGenerator.email(items) },
-//        MakerEnum.NAME_FIRST to { _ -> NameGenerator.firstName(fakers) },
-//        MakerEnum.NAME_LAST to { items -> NameGenerator.lastName(items, fakers) },
-//        MakerEnum.NAME_COMPANY to { items -> NameGenerator.companyName(items, fakers) },
-//        MakerEnum.ADDRESS to { _ -> AmericaGenerator.address() },
-//        MakerEnum.ADDRESS_2 to { _ -> AmericaGenerator.address2() },
-//        MakerEnum.NUMBER_REGULAR to { _ -> NumberGenerator.numRange(null, null) },
-//        MakerEnum.NUMBER_PRICE to { _ -> NumberGenerator.priceRange(null, null) },
-//        MakerEnum.DATE to { _ -> DateGenerator.dateRange(null, null) },
-//        MakerEnum.CREDIT_CARD_NUMBER to { _ -> CreditCardGenerator.creditCard() },
-//        // todo add a parameter so we can explicitly tell it what type of credit cards we want
-//        MakerEnum.CREDIT_CARD_CVV to { items -> CreditCardGenerator.cvv(items) },
-//        // todo add a parameter so we can explicitly tell it what type of IDs we want
-//        MakerEnum.ID to { _ -> IdGenerator.id() },
-//        MakerEnum.BOOLEAN to { _ -> BooleanGenerator.bool() },
-//    )
 
     fun buildDataTable(rowCount: Int, schema: Schema): Flow<DataTableDto> = channelFlow {
         val startTime = System.nanoTime()
@@ -203,9 +181,6 @@ class SwitchBoardService(
         }
         return result
     }
-
-    // Cache the empty generator
-    private val EMPTY_GENERATOR: (List<DataTableItem>) -> DataTableItem = { DataTableItem() }
 
     private inner class PerformanceTracker(
         private val totalRows: Int,

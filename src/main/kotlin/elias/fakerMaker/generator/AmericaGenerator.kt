@@ -163,7 +163,8 @@ object AmericaGenerator {
             originalValue = null,
             derivedValue  = state.toString(),
             wikiUrl       = WikiUtil.createStateWikiLink(state),
-            influencedBy  = listOf(Influencer.State(state))
+            influencedBy  = listOf(Influencer.State(state)),
+            idTypeEnum = null
         )
     }
 
@@ -183,7 +184,8 @@ object AmericaGenerator {
             influencedBy = listOf(
                 Influencer.State(state),
                 Influencer.City(city)
-            )
+            ),
+            idTypeEnum = null
         )
     }
 
@@ -219,7 +221,8 @@ object AmericaGenerator {
                 Influencer.State(state),
                 Influencer.City(city),
                 Influencer.Zip(zip)
-            )
+            ),
+            idTypeEnum = null
         )
     }
 
@@ -302,7 +305,8 @@ object AmericaGenerator {
                 Influencer.City(city),
                 Influencer.AreaCode(areaCode),
                 existingItems?.find { it.maker == MakerEnum.ZIP }?.let { Influencer.Zip(it.derivedValue) }
-            )
+            ),
+            idTypeEnum = null
         )
     }
 
@@ -355,7 +359,8 @@ object AmericaGenerator {
             originalValue = null,
             derivedValue  = addressString,
             wikiUrl       = null,
-            influencedBy  = null
+            influencedBy  = null,
+            idTypeEnum    = null
         )
     }
 
@@ -376,6 +381,7 @@ object AmericaGenerator {
             derivedValue  = "$baseAddress $number",
             wikiUrl       = null,
             influencedBy  = null,
+            idTypeEnum    = null
         )
     }
 

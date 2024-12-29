@@ -44,15 +44,14 @@ object NumberGenerator {
             originalValue = null,
             derivedValue = Random.nextInt(start, end + 1).toString(),
             wikiUrl = null,
-            influencedBy = null
+            influencedBy = null,
+            idTypeEnum = null
         )
     }
 
-    fun priceRange(min: Int?, max: Int?): DataTableItem {
+    fun priceRange(min: Double?, max: Double?): DataTableItem {
         val (start, end) = if (min != null && max != null) {
-            val minDouble = min.toDouble()
-            val maxDouble = max.toDouble()
-            if (minDouble <= maxDouble) minDouble to maxDouble else maxDouble to minDouble
+            if (min <= max) min to max else max to min
         } else {
             defaultPriceRanges.random()
         }
@@ -69,7 +68,33 @@ object NumberGenerator {
             originalValue = null,
             derivedValue = formattedPrice,
             wikiUrl = null,
-            influencedBy = null
+            influencedBy = null,
+            idTypeEnum = null
         )
     }
+
+//    fun priceRange(min: Int?, max: Int?): DataTableItem {
+//        val (start, end) = if (min != null && max != null) {
+//            val minDouble = min.toDouble()
+//            val maxDouble = max.toDouble()
+//            if (minDouble <= maxDouble) minDouble to maxDouble else maxDouble to minDouble
+//        } else {
+//            defaultPriceRanges.random()
+//        }
+//
+//        // Generate random amount with 2 decimal places
+//        val randomPrice = start + Random.nextDouble() * (end - start)
+//
+//        // Format the price using the cached currency formatter
+//        val formattedPrice = currencyFormatter.get().format(randomPrice)
+//
+//        return DataTableItem(
+//            maker = MakerEnum.NUMBER_PRICE,
+//            fakersUsed = null,
+//            originalValue = null,
+//            derivedValue = formattedPrice,
+//            wikiUrl = null,
+//            influencedBy = null
+//        )
+//    }
 }

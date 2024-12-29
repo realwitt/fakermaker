@@ -18,7 +18,8 @@ object BooleanGenerator {
             originalValue = null,
             derivedValue = value,
             wikiUrl = null,
-            influencedBy = null
+            influencedBy = null,
+            idTypeEnum = null
         )
     }
 }

@@ -33,7 +33,8 @@ object DateGenerator {
                 .format(FORMATTER)
                 .uppercase(),
             wikiUrl = null,
-            influencedBy = null
+            influencedBy = null,
+            idTypeEnum = null
         )
     }
 }

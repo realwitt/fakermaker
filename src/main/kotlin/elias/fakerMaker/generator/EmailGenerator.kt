@@ -152,7 +152,8 @@ object EmailGenerator {
             originalValue = companyItem.derivedValue,
             derivedValue = "$localPart@$domain$tld",
             wikiUrl = companyItem.wikiUrl,
-            influencedBy = null
+            influencedBy = null,
+            idTypeEnum = null
         )
     }
 
@@ -164,7 +165,8 @@ object EmailGenerator {
             originalValue = null,
             derivedValue = "$localPart@$domain$COM_TLD",
             wikiUrl = null,
-            influencedBy = null
+            influencedBy = null,
+            idTypeEnum = null,
         )
     }
 
@@ -180,7 +182,8 @@ object EmailGenerator {
                 originalValue = null,
                 derivedValue = "$localPart@${emailProviders.random()}",
                 wikiUrl = null,
-                influencedBy = null
+                influencedBy = null,
+                idTypeEnum = null,
             )
         }
 
@@ -196,7 +199,8 @@ object EmailGenerator {
                 originalValue = null,
                 derivedValue = "$localPart@${emailProviders.random()}",
                 wikiUrl = null,
-                influencedBy = null
+                influencedBy = null,
+                idTypeEnum = null
             )
         }
 
@@ -217,7 +221,8 @@ object EmailGenerator {
             originalValue = domainValue,
             derivedValue = "$localPart@$domainValue$tld",
             wikiUrl = WikiUtil.createFandomWikiLink(faker, domainValue, false),
-            influencedBy = null
+            influencedBy = null,
+            idTypeEnum = null
         )
     }
 
