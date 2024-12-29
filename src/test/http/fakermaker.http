@@ -233,4 +233,4 @@ Content-Type: application/json
 }
 
 ### Retrieve available schema definitions
-GET http://localhost:8181/api/fakermaker/all-options
+GET http://localhost:8181/api/fakermaker/fakermakers
