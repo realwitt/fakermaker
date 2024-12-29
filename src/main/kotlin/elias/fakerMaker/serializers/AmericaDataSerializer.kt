@@ -1,6 +1,6 @@
-package elias.fakerMaker.mapper
+package elias.fakerMaker.serializers
 
-import elias.fakerMaker.dto.LocationData
+import elias.fakerMaker.types.LocationData
 import elias.fakerMaker.enums.StatesEnum
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.MapSerializer

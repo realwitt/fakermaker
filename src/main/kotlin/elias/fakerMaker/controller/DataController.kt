@@ -1,9 +1,10 @@
 package elias.fakerMaker.controller
 
-import elias.fakerMaker.dto.DataTableItem
-import elias.fakerMaker.type.SchemaOptions
+import elias.fakerMaker.types.dto.DataTableItem
+import elias.fakerMaker.types.SchemaOptions
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.MakerEnum
+import elias.fakerMaker.types.model.Schema
 import elias.fakerMaker.service.SwitchBoardService
 import kotlinx.coroutines.reactor.asFlux
 import org.springframework.http.HttpHeaders
@@ -18,20 +19,28 @@ class DataController(
     private val switchBoardService: SwitchBoardService
 ) {
     @PostMapping("/dataTable/{count}")
-    fun populateDataTable(@PathVariable count: Int): Flux<List<DataTableItem>> {
-        val tableData = switchBoardService
+    fun populateDataTable(
+        @PathVariable count: Int,
+        @RequestBody schema: Schema
+    ): Flux<List<DataTableItem>> {
+        println("parsed schema looks like:")
+        println(schema)
+        return switchBoardService
             .buildDataTable(
                 count,
                 FakerEnum.entries.toList(),
                 MakerEnum.entries.toList()
             )
             .asFlux()
-
-        return tableData
     }
 
     @PostMapping("/download/{count}")
-    suspend fun getFakeData(@PathVariable count: Int) : ResponseEntity<String> {
+    suspend fun getFakeData(
+        @PathVariable count: Int,
+        @RequestBody schema: Schema
+    ): ResponseEntity<String> {
+        println("parsed schema looks like:")
+        println(schema)
         val csvData = switchBoardService.buildCsv(
             count,
             MakerEnum.entries.toList(),
@@ -46,7 +55,7 @@ class DataController(
             .body(csvData)
     }
 
-    @GetMapping("/schema")
+    @GetMapping("/all-options")
     fun getSchema(): SchemaOptions {
         val fakers = FakerEnum.entries.map { faker -> faker.prettyName }
         val makers = MakerEnum.entries.map { maker -> maker.prettyName }

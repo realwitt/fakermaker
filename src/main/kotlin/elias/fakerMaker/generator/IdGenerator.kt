@@ -1,6 +1,7 @@
 package elias.fakerMaker.generator
 
-import elias.fakerMaker.dto.DataTableItem
+import elias.fakerMaker.types.dto.DataTableItem
+import elias.fakerMaker.enums.IdTypeEnum
 import elias.fakerMaker.enums.MakerEnum
 import java.util.UUID
 import kotlin.random.Random
@@ -18,18 +19,19 @@ object IdGenerator {
     private const val OBJECT_ID_LENGTH = 24
 
     fun id(): DataTableItem {
-        val (generatedId, idType) = when(Random.nextInt(5)) {
-            0 -> generateUUID() to "UUID"
-            1 -> generateNanoId() to "NanoID"
-            2 -> generateShortId() to "ShortID"
-            3 -> generateNumericId() to "NumericID"
-            else -> generateObjectId() to "ObjectID"
+        val idType = IdTypeEnum.entries.random()
+        val generatedId = when(idType) {
+            IdTypeEnum.UUID -> generateUUID()
+            IdTypeEnum.NANO_ID -> generateNanoId()
+            IdTypeEnum.SHORT_ID -> generateShortId()
+            IdTypeEnum.NUMERIC_ID -> generateNumericId()
+            IdTypeEnum.OBJECT_ID -> generateObjectId()
         }
 
         return DataTableItem(
             maker = MakerEnum.ID,
             fakersUsed = null,
-            originalValue = idType,
+            originalValue = idType.prettyName,
             derivedValue = generatedId,
             wikiUrl = null,
             influencedBy = null

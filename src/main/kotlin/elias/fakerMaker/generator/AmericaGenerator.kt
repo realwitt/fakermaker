@@ -1,9 +1,9 @@
 package elias.fakerMaker.generator
 
-import elias.fakerMaker.dto.AmericaData
-import elias.fakerMaker.dto.DataTableItem
-import elias.fakerMaker.dto.Influencer
-import elias.fakerMaker.dto.LocationData
+import elias.fakerMaker.types.AmericaData
+import elias.fakerMaker.types.dto.DataTableItem
+import elias.fakerMaker.types.dto.Influencer
+import elias.fakerMaker.types.LocationData
 import elias.fakerMaker.enums.MakerEnum
 import elias.fakerMaker.enums.StatesEnum
 import elias.fakerMaker.fakers.Address

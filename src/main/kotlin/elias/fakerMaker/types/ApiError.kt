@@ -1,4 +1,4 @@
-package elias.fakerMaker.type
+package elias.fakerMaker.types
 
 import org.springframework.http.HttpStatus
 import java.time.LocalDateTime

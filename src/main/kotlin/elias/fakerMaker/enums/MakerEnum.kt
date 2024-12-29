@@ -56,4 +56,5 @@ enum class MakerEnum(val prettyName: String) {
     @SerialName("Credit Card CVV")
     CREDIT_CARD_CVV("Credit Card CVV");
 
+    override fun toString(): String = name
 }

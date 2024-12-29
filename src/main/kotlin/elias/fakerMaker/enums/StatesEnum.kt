@@ -69,6 +69,6 @@ enum class StatesEnum(val fullName: String) {
     @SerialName("PR") PR("Puerto Rico"),
     @SerialName("PW") PW("Palau"),
     @SerialName("VI") VI("Virgin Islands"),
-    @SerialName("STATE") STATE("Weird edge case in postal data");
+    @SerialName("STATE") state("Weird edge case in postal data");
 
 }

@@ -1,8 +1,5 @@
 ### Generate test data table with 50 records
 POST http://localhost:8181/api/fakermaker/dataTable/1
-
-### Download 1M records with specified schema
-POST http://localhost:8181/api/fakermaker/download/1000000
 Content-Type: application/json
 
 {
@@ -13,8 +10,76 @@ Content-Type: application/json
   ],
   "makers": [
     {
-      "makerType": "date",
-      "range": [
+      "makerEnum": "First Name",
+      "nickName": "first name",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Last Name",
+      "nickName": "last name",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Company Name",
+      "nickName": "company name",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Email",
+      "nickName": "email",
+      "nullable": true
+    },
+    {
+      "makerEnum": "Phone Number",
+      "nickName": "phone",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Address",
+      "nickName": "address",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Address 2",
+      "nickName": "address2",
+      "nullable": false
+    },
+    {
+      "makerEnum": "State",
+      "nickName": "state",
+      "nullable": false
+    },
+    {
+      "makerEnum": "City",
+      "nickName": "city",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Zip",
+      "nickName": "zip",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Price",
+      "nickName": "price",
+      "nullable": false,
+      "priceRange": [
+        12.99,
+        100.24
+      ]
+    },
+    {
+      "makerEnum": "Number",
+      "nickName": "number of pets",
+      "nullable": false,
+      "numberRange": [
+        "1",
+        "2"
+      ]
+    },
+    {
+      "makerEnum": "Date",
+      "dateRange": [
         "JAN-01-1970",
         "FEB-04-2006"
       ],
@@ -22,30 +87,150 @@ Content-Type: application/json
       "nullable": false
     },
     {
-      "price": "sticker cost",
-      "range": [
-        0,
-        420.69
-      ],
+      "makerEnum": "True/False",
+      "nickName": "is attending",
       "nullable": false
     },
     {
-      "makerType": "email",
-      "nickName": "business email",
+      "makerEnum": "Id",
+      "idTypeEnum" : "UUID",
+      "nickName": "itemId",
       "nullable": false
     },
     {
-      "makerType": "address2",
-      "nickName": "address2",
+      "makerEnum": "Credit Card",
+      "nickName": "card number",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Credit Card",
+      "nickName": "card number",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Credit Card CVV",
+      "nickName": "card CVV",
+      "nullable": false
+    }
+  ]
+}
+
+### Download 1M records with specified schema
+POST http://localhost:8181/api/fakermaker/download/1
+Content-Type: application/json
+
+{
+  "sessionID": "123123123234l",
+  "fakers": [
+    "Harry Potter",
+    "Lord of the Rings"
+  ],
+  "makers": [
+    {
+      "makerEnum": "First Name",
+      "nickName": "first name",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Last Name",
+      "nickName": "last name",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Company Name",
+      "nickName": "company name",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Email",
+      "nickName": "email",
       "nullable": true
     },
     {
-      "makerType": "first name",
-      "nickName": "first",
+      "makerEnum": "Phone Number",
+      "nickName": "phone",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Address",
+      "nickName": "address",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Address 2",
+      "nickName": "address2",
+      "nullable": false
+    },
+    {
+      "makerEnum": "State",
+      "nickName": "state",
+      "nullable": false
+    },
+    {
+      "makerEnum": "City",
+      "nickName": "city",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Zip",
+      "nickName": "zip",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Price",
+      "nickName": "price",
+      "nullable": false,
+      "priceRange": [
+        12.99,
+        100.24
+      ]
+    },
+    {
+      "makerEnum": "Number",
+      "nickName": "number of pets",
+      "nullable": false,
+      "numberRange": [
+        "1",
+        "2"
+      ]
+    },
+    {
+      "makerEnum": "Date",
+      "dateRange": [
+        "JAN-01-1970",
+        "FEB-04-2006"
+      ],
+      "nickName": "birthday",
+      "nullable": false
+    },
+    {
+      "makerEnum": "True/False",
+      "nickName": "is attending",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Id",
+      "idTypeEnum" : "UUID",
+      "nickName": "itemId",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Credit Card",
+      "nickName": "card number",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Credit Card",
+      "nickName": "card number",
+      "nullable": false
+    },
+    {
+      "makerEnum": "Credit Card CVV",
+      "nickName": "card CVV",
       "nullable": false
     }
   ]
 }
 
 ### Retrieve available schema definitions
-GET http://localhost:8181/api/fakermaker/schema
+GET http://localhost:8181/api/fakermaker/all-options

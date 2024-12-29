@@ -1,7 +1,7 @@
 package elias.fakerMaker.service
 
 import de.siegmar.fastcsv.writer.CsvWriter
-import elias.fakerMaker.dto.DataTableItem
+import elias.fakerMaker.types.dto.DataTableItem
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.MakerEnum
 import elias.fakerMaker.generator.*
@@ -53,6 +53,7 @@ class SwitchBoardService(
         MakerEnum.NUMBER_PRICE to { _ -> NumberGenerator.priceRange(null, null) },
         MakerEnum.DATE to { _ -> DateGenerator.dateRange(null, null) },
         MakerEnum.CREDIT_CARD_NUMBER to { _ -> CreditCardGenerator.creditCard() },
+        // todo add a parameter so users can say only generate a certain kind of credit card
         MakerEnum.CREDIT_CARD_CVV to { items -> CreditCardGenerator.cvv(items) },
         // todo add a parameter so we can explicitly tell it what type of ID we want
         MakerEnum.ID to { _ -> IdGenerator.id() },

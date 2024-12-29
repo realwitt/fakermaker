@@ -1,7 +1,7 @@
-package elias.fakerMaker.dto
+package elias.fakerMaker.types
 
 import elias.fakerMaker.enums.StatesEnum
-import elias.fakerMaker.mapper.AmericaDataSerializer
+import elias.fakerMaker.serializers.AmericaDataSerializer
 import kotlinx.serialization.Serializable
 
 typealias AmericaData = @Serializable(with = AmericaDataSerializer::class)

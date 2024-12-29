@@ -1,7 +1,7 @@
 package elias.fakerMaker.config
 
 import elias.fakerMaker.config.exception.ApiException
-import elias.fakerMaker.type.ApiError
+import elias.fakerMaker.types.ApiError
 import mu.KotlinLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
