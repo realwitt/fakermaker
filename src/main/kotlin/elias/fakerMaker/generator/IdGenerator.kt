@@ -1,6 +1,6 @@
 package elias.fakerMaker.generator
 
-import elias.fakerMaker.types.dto.DataTableItem
+import elias.fakerMaker.types.DataTableItem
 import elias.fakerMaker.enums.IdTypeEnum
 import elias.fakerMaker.enums.MakerEnum
 import java.util.UUID

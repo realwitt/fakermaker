@@ -1,6 +1,6 @@
 package elias.fakerMaker.generator
 
-import elias.fakerMaker.types.dto.DataTableItem
+import elias.fakerMaker.types.DataTableItem
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.MakerEnum
 import elias.fakerMaker.fakers.Tech
@@ -36,17 +36,6 @@ object NameGenerator {
         FakerEnum.THRONE_OF_GLASS
     )
 
-    private val companyNameFakers = setOf(
-        FakerEnum.GRAVITY_FALLS,
-        FakerEnum.HARRY_POTTER,
-        FakerEnum.KING_OF_THE_HILL,
-        FakerEnum.MONK,
-        FakerEnum.PARKS_AND_REC,
-        FakerEnum.SILICON_VALLEY,
-        FakerEnum.TECH,
-        FakerEnum.THE_OFFICE
-    )
-
     // Pre-computed character and company lists
     private val staticCharacterLists = mapOf(
         FakerEnum.BACK_TO_THE_FUTURE to BackToTheFuture.characters.toList(),
@@ -68,6 +57,17 @@ object NameGenerator {
         FakerEnum.THE_HOBBIT to TheHobbit.characters.toList(),
         FakerEnum.THE_OFFICE to TheOffice.characters.toList(),
         FakerEnum.THRONE_OF_GLASS to ThroneOfGlass.characters.toList()
+    )
+
+    private val companyNameFakers = setOf(
+        FakerEnum.GRAVITY_FALLS,
+        FakerEnum.HARRY_POTTER,
+        FakerEnum.KING_OF_THE_HILL,
+        FakerEnum.MONK,
+        FakerEnum.PARKS_AND_REC,
+        FakerEnum.SILICON_VALLEY,
+        FakerEnum.TECH,
+        FakerEnum.THE_OFFICE
     )
 
     private val staticCompanyLists = mapOf(
@@ -175,7 +175,11 @@ object NameGenerator {
             originalValue = fullName,
             derivedValue = extractFirstName(fullName),
             wikiUrl = WikiUtil.createFandomWikiLink(validFaker, fullName, false),
-            influencedBy = null
+            influencedBy =  null,
+            dateRange = null,
+            numberRange = null,
+            priceRange = null,
+            idTypeEnum = null,
         )
     }
 
@@ -201,7 +205,11 @@ object NameGenerator {
                     originalValue = fullName,
                     derivedValue = lastName,
                     wikiUrl = WikiUtil.createFandomWikiLink(faker, fullName, false),
-                    influencedBy = null
+                    influencedBy =  null,
+                    dateRange = null,
+                    numberRange = null,
+                    priceRange = null,
+                    idTypeEnum = null,
                 )
             }
         }
@@ -217,7 +225,11 @@ object NameGenerator {
             originalValue = fullName,
             derivedValue = extractLastName(fullName),
             wikiUrl = WikiUtil.createFandomWikiLink(validFaker, fullName, false),
-            influencedBy = null
+            influencedBy =  null,
+            dateRange = null,
+            numberRange = null,
+            priceRange = null,
+            idTypeEnum = null,
         )
     }
 
@@ -240,7 +252,11 @@ object NameGenerator {
                         originalValue = companyName,
                         derivedValue = companyName,
                         wikiUrl = WikiUtil.createFandomWikiLink(firstNameFaker, companyName, true),
-                        influencedBy = null
+                        influencedBy =  null,
+                        dateRange = null,
+                        numberRange = null,
+                        priceRange = null,
+                        idTypeEnum = null,
                     )
                 }
             }
@@ -258,7 +274,11 @@ object NameGenerator {
             originalValue = companyName,
             derivedValue = companyName,
             wikiUrl = WikiUtil.createFandomWikiLink(selectedFaker, companyName, true),
-            influencedBy = null
+            influencedBy =  null,
+            dateRange = null,
+            numberRange = null,
+            priceRange = null,
+            idTypeEnum = null,
         )
     }
 

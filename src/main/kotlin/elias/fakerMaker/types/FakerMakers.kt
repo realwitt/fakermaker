@@ -1,6 +1,6 @@
 package elias.fakerMaker.types
 
-data class SchemaOptions(
+data class FakerMakers(
     val fakers: List<String>,
     val makers: List<String>
 )

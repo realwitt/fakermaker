@@ -1,6 +1,5 @@
 package elias.fakerMaker.config
 
-import elias.fakerMaker.config.exception.ApiException
 import elias.fakerMaker.types.ApiError
 import mu.KotlinLogging
 import org.springframework.http.HttpStatus
@@ -11,7 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.server.ServerWebExchange
 
 @RestControllerAdvice
-class GlobalExceptionHandler {
+class ApiGlobalExceptionHandler {
     private val logger = KotlinLogging.logger {}
 
     @ExceptionHandler(ApiException::class)

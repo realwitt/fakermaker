@@ -1,11 +1,12 @@
 package elias.fakerMaker.controller
 
-import elias.fakerMaker.types.dto.DataTableItem
-import elias.fakerMaker.types.SchemaOptions
+import elias.fakerMaker.types.DataTableItem
+import elias.fakerMaker.types.FakerMakers
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.MakerEnum
 import elias.fakerMaker.types.model.Schema
 import elias.fakerMaker.service.SwitchBoardService
+import elias.fakerMaker.types.dto.DataTableDto
 import kotlinx.coroutines.reactor.asFlux
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -18,23 +19,24 @@ import reactor.core.publisher.Flux
 class DataController(
     private val switchBoardService: SwitchBoardService
 ) {
-    @PostMapping("/dataTable/{count}")
+    @PostMapping("/dataTable/")
     fun populateDataTable(
-        @PathVariable count: Int,
+        // should we use a pageable object here?
+        // we could just default to 200 rows of data then page client side
         @RequestBody schema: Schema
-    ): Flux<List<DataTableItem>> {
+    ): Flux<DataTableDto> {
+        val rowCount = 200
         println("parsed schema looks like:")
         println(schema)
         return switchBoardService
             .buildDataTable(
-                count,
-                FakerEnum.entries.toList(),
-                MakerEnum.entries.toList()
+                rowCount,
+                schema
             )
             .asFlux()
     }
 
-    @PostMapping("/download/{count}")
+    @PostMapping("/csv/{count}")
     suspend fun getFakeData(
         @PathVariable count: Int,
         @RequestBody schema: Schema
@@ -43,10 +45,7 @@ class DataController(
         println(schema)
         val csvData = switchBoardService.buildCsv(
             count,
-            MakerEnum.entries.toList(),
-            FakerEnum.entries.toList(),
-//            listOf(MakerEnum.ADDRESS, MakerEnum.PHONE, MakerEnum.NAME_FIRST),
-//            listOf(FakerEnum.GRAVITY_FALLS, FakerEnum.KING_OF_THE_HILL, FakerEnum.HARRY_POTTER),
+            schema
         )
 
         return ResponseEntity.ok()
@@ -55,12 +54,12 @@ class DataController(
             .body(csvData)
     }
 
-    @GetMapping("/all-options")
-    fun getSchema(): SchemaOptions {
+    @GetMapping("/fakermakers")
+    fun getSchema(): FakerMakers {
         val fakers = FakerEnum.entries.map { faker -> faker.prettyName }
         val makers = MakerEnum.entries.map { maker -> maker.prettyName }
 
-        return SchemaOptions(fakers, makers)
+        return FakerMakers(fakers, makers)
     }
 
     // for simulate random schemas

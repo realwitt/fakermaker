@@ -1,16 +1,20 @@
 package elias.fakerMaker.service
 
 import de.siegmar.fastcsv.writer.CsvWriter
-import elias.fakerMaker.types.dto.DataTableItem
+import elias.fakerMaker.types.DataTableItem
 import elias.fakerMaker.enums.FakerEnum
 import elias.fakerMaker.enums.MakerEnum
 import elias.fakerMaker.generator.*
+import elias.fakerMaker.types.MakerConfig
+import elias.fakerMaker.types.dto.DataTableDto
+import elias.fakerMaker.types.model.Schema
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 import java.io.StringWriter
+import java.time.ZoneOffset
 import kotlin.coroutines.CoroutineContext
 
 @Service
@@ -21,15 +25,15 @@ class SwitchBoardService(
 
     // Precompute maker order for better performance
     private val makerOrder = mapOf(
-        "NAME_FIRST" to 0,
-        "NAME_LAST" to 1,
-        "NAME_COMPANY" to 2,
-        "STATE" to 3,
-        "CITY" to 4,
-        "ZIP" to 5,
-        "PHONE" to 6,
-        "CREDIT_CARD_NUMBER" to 7,
-        "CREDIT_CARD_CVV" to 8
+        MakerEnum.NAME_FIRST to 0,
+        MakerEnum.NAME_LAST to 1,
+        MakerEnum.NAME_COMPANY to 2,
+        MakerEnum.STATE to 3,
+        MakerEnum.CITY to 4,
+        MakerEnum.ZIP to 5,
+        MakerEnum.PHONE to 6,
+        MakerEnum.CREDIT_CARD_NUMBER to 7,
+        MakerEnum.CREDIT_CARD_CVV to 8,
     )
 
 
@@ -37,44 +41,99 @@ class SwitchBoardService(
     val CSV_BUFFER_SIZE = 32768  // 32KB, internal buffer size used by FastCSV for writing to disk/files
     private val BATCH_SIZE = 5000 // how many rows we process together in memory before writing
 
-    private fun initGenerators(fakers: List<FakerEnum>): Map<MakerEnum, (List<DataTableItem>) -> DataTableItem> = mapOf(
-        MakerEnum.STATE to { _ -> AmericaGenerator.state() },
-        MakerEnum.CITY to { items -> AmericaGenerator.city(items) },
-        MakerEnum.ZIP to { items -> AmericaGenerator.zip(items) },
-        MakerEnum.PHONE to { items -> AmericaGenerator.phone(items) },
-        MakerEnum.EMAIL to { items -> EmailGenerator.email(items) },
-        MakerEnum.NAME_FIRST to { _ -> NameGenerator.firstName(fakers) },
-        MakerEnum.NAME_LAST to { items -> NameGenerator.lastName(items, fakers) },
-        MakerEnum.NAME_COMPANY to { items -> NameGenerator.companyName(items, fakers) },
-        MakerEnum.ADDRESS to { _ -> AmericaGenerator.address() },
-        MakerEnum.ADDRESS_2 to { _ -> AmericaGenerator.address2() },
-        // todo: the data type will have to change from List<FakerEnums> to Schema so we can pass these values
-        MakerEnum.NUMBER_REGULAR to { _ -> NumberGenerator.numRange(null, null) },
-        MakerEnum.NUMBER_PRICE to { _ -> NumberGenerator.priceRange(null, null) },
-        MakerEnum.DATE to { _ -> DateGenerator.dateRange(null, null) },
-        MakerEnum.CREDIT_CARD_NUMBER to { _ -> CreditCardGenerator.creditCard() },
-        // todo add a parameter so users can say only generate a certain kind of credit card
-        MakerEnum.CREDIT_CARD_CVV to { items -> CreditCardGenerator.cvv(items) },
-        // todo add a parameter so we can explicitly tell it what type of ID we want
-        MakerEnum.ID to { _ -> IdGenerator.id() },
-        MakerEnum.BOOLEAN to { _ -> BooleanGenerator.bool() },
-    )
-
-    fun buildDataTable(armySize: Int, fakers: List<FakerEnum>, makers: List<MakerEnum>): Flow<List<DataTableItem>> = channelFlow {
-        val startTime = System.nanoTime()
-        val sortedMakers = makers.sortedBy { maker ->
-            makerOrder[maker.name] ?: Int.MAX_VALUE
+    private fun initGenerators(
+        fakers: List<FakerEnum>,
+        makerConfigs: List<MakerConfig>
+    ): List<(List<DataTableItem>) -> DataTableItem> = makerConfigs.map { config ->
+        when (config.makerEnum) {
+            MakerEnum.NUMBER_PRICE -> { _ ->
+                NumberGenerator.priceRange(
+                    config.priceRange?.first?.toInt(),
+                    config.priceRange?.second?.toInt()
+                )
+            }
+            MakerEnum.NUMBER_REGULAR -> { _ ->
+                NumberGenerator.numRange(
+                    config.numberRange?.first,
+                    config.numberRange?.second
+                )
+            }
+            MakerEnum.DATE -> { _ ->
+                val startDate = config.dateRange?.first?.atStartOfDay()?.toInstant(ZoneOffset.UTC)?.toEpochMilli()
+                val endDate = config.dateRange?.second?.atStartOfDay()?.toInstant(ZoneOffset.UTC)?.toEpochMilli()
+                DateGenerator.dateRange(startDate, endDate)
+            }
+            MakerEnum.STATE -> { _ -> AmericaGenerator.state() }
+            MakerEnum.CITY -> { items -> AmericaGenerator.city(items) }
+            MakerEnum.ZIP -> { items -> AmericaGenerator.zip(items) }
+            MakerEnum.PHONE -> { items -> AmericaGenerator.phone(items) }
+            MakerEnum.EMAIL -> { items -> EmailGenerator.email(items) }
+            MakerEnum.NAME_FIRST -> { _ -> NameGenerator.firstName(fakers) }
+            MakerEnum.NAME_LAST -> { items -> NameGenerator.lastName(items, fakers) }
+            MakerEnum.NAME_COMPANY -> { items -> NameGenerator.companyName(items, fakers) }
+            MakerEnum.ADDRESS -> { _ -> AmericaGenerator.address() }
+            MakerEnum.ADDRESS_2 -> { _ -> AmericaGenerator.address2() }
+            MakerEnum.CREDIT_CARD_NUMBER -> { _ -> CreditCardGenerator.creditCard() }
+                // todo add a parameter so we can explicitly tell it what type of credit cards we want
+            MakerEnum.CREDIT_CARD_CVV -> { items -> CreditCardGenerator.cvv(items) }
+                // todo add a parameter so we can explicitly tell it what type of IDs we want
+            MakerEnum.ID -> { _ -> IdGenerator.id() }
+            MakerEnum.BOOLEAN -> { _ -> BooleanGenerator.bool() }
         }
-        val performanceTracker = PerformanceTracker(armySize, makers.size, fakers, makers)
-        val generators = initGenerators(fakers)
+    }
+
+//    private fun initGenerators(fakers: List<FakerEnum>): Map<MakerEnum, (List<DataTableItem>) -> DataTableItem> = mapOf(
+//        MakerEnum.STATE to { _ -> AmericaGenerator.state() },
+//        MakerEnum.CITY to { items -> AmericaGenerator.city(items) },
+//        MakerEnum.ZIP to { items -> AmericaGenerator.zip(items) },
+//        MakerEnum.PHONE to { items -> AmericaGenerator.phone(items) },
+//        MakerEnum.EMAIL to { items -> EmailGenerator.email(items) },
+//        MakerEnum.NAME_FIRST to { _ -> NameGenerator.firstName(fakers) },
+//        MakerEnum.NAME_LAST to { items -> NameGenerator.lastName(items, fakers) },
+//        MakerEnum.NAME_COMPANY to { items -> NameGenerator.companyName(items, fakers) },
+//        MakerEnum.ADDRESS to { _ -> AmericaGenerator.address() },
+//        MakerEnum.ADDRESS_2 to { _ -> AmericaGenerator.address2() },
+//        MakerEnum.NUMBER_REGULAR to { _ -> NumberGenerator.numRange(null, null) },
+//        MakerEnum.NUMBER_PRICE to { _ -> NumberGenerator.priceRange(null, null) },
+//        MakerEnum.DATE to { _ -> DateGenerator.dateRange(null, null) },
+//        MakerEnum.CREDIT_CARD_NUMBER to { _ -> CreditCardGenerator.creditCard() },
+//        // todo add a parameter so we can explicitly tell it what type of credit cards we want
+//        MakerEnum.CREDIT_CARD_CVV to { items -> CreditCardGenerator.cvv(items) },
+//        // todo add a parameter so we can explicitly tell it what type of IDs we want
+//        MakerEnum.ID to { _ -> IdGenerator.id() },
+//        MakerEnum.BOOLEAN to { _ -> BooleanGenerator.bool() },
+//    )
+
+    fun buildDataTable(rowCount: Int, schema: Schema): Flow<DataTableDto> = channelFlow {
+        val startTime = System.nanoTime()
+        val fakers = schema.fakers
+        val makers = schema.makers.map { it.makerEnum }
+
+        // Sort the maker configs
+        val sortedMakerConfigs = schema.makers.sortedBy { maker ->
+            makerOrder[maker.makerEnum] ?: Int.MAX_VALUE
+        }
+
+        val performanceTracker = PerformanceTracker(rowCount, makers.size, fakers, makers)
+        val generators = initGenerators(fakers, sortedMakerConfigs)
 
         try {
             withContext(workerContext) {
-                (0 until armySize).chunked(BATCH_SIZE).forEach { chunk ->
+                // Create the DataTableDto with headers
+                val headers = sortedMakerConfigs.map { it.nickName }
+
+                // Process data in batches
+                (0 until rowCount).chunked(BATCH_SIZE).forEach { chunk ->
                     val rows = chunk.map {
-                        async { generateRow(sortedMakers, generators) { it } }
+                        async { generateRow(sortedMakerConfigs, generators) { it } }
                     }.awaitAll()
-                    rows.forEach { row -> send(row) }
+
+                    // Create and send DataTableDto for this batch
+                    val dto = DataTableDto(
+                        headers = headers,
+                        data = rows
+                    )
+                    send(dto)
                 }
             }
         } finally {
@@ -84,13 +143,16 @@ class SwitchBoardService(
         }
     }
 
-    suspend fun buildCsv(armySize: Int, makers: List<MakerEnum>, fakers: List<FakerEnum>): String {
+    suspend fun buildCsv(rowCount: Int, schema: Schema): String {
         val startTime = System.nanoTime()
-        val sortedMakers = makers.sortedBy { maker ->
-            makerOrder.entries.find { maker.name.contains(it.key) }?.value ?: Int.MAX_VALUE
+
+        // Sort the makerConfigs using the makerOrder map
+        val sortedMakerConfigs = schema.makers.sortedBy { config ->
+            makerOrder[config.makerEnum] ?: Int.MAX_VALUE
         }
-        val performanceTracker = PerformanceTracker(armySize, makers.size, fakers, makers)
-        val generators = initGenerators(fakers)
+
+        val performanceTracker = PerformanceTracker(rowCount, schema.makers.size, schema.fakers, schema.makers.map { it.makerEnum })
+        val generators = initGenerators(schema.fakers, sortedMakerConfigs)
 
         return try {
             StringWriter(CSV_BUFFER_SIZE).use { writer ->
@@ -98,15 +160,15 @@ class SwitchBoardService(
                     .bufferSize(CSV_BUFFER_SIZE)
                     .build(writer)
                     .use { csv ->
-                        // Write header
-                        csv.writeRecord(sortedMakers.map { it.name })
+                        // Write header - using nickName from MakerConfig instead of enum name
+                        csv.writeRecord(sortedMakerConfigs.map { it.nickName })
 
                         // Generate and write data in batches
                         withContext(workerContext) {
-                            (0 until armySize).chunked(BATCH_SIZE).forEach { chunk ->
+                            (0 until rowCount).chunked(BATCH_SIZE).forEach { chunk ->
                                 val rows = chunk.map {
                                     async {
-                                        generateRow(sortedMakers, generators) { item -> item.derivedValue }
+                                        generateRow(sortedMakerConfigs, generators) { item -> item.derivedValue }
                                     }
                                 }.awaitAll()
 
@@ -127,17 +189,14 @@ class SwitchBoardService(
     }
 
     private fun <T> generateRow(
-        makers: List<MakerEnum>,
-        generators: Map<MakerEnum, (List<DataTableItem>) -> DataTableItem>,
+        makers: List<MakerConfig>,
+        generators: List<(List<DataTableItem>) -> DataTableItem>,
         transform: (DataTableItem) -> T
     ): List<T> {
-        // Preallocate both arrays for better memory efficiency
         val currentRowState = ArrayList<DataTableItem>(makers.size)
         val result = ArrayList<T>(makers.size)
 
-        for (maker in makers) {
-            // Avoid map lookup for each iteration using computeIfAbsent pattern
-            val generator = generators[maker] ?: EMPTY_GENERATOR
+        generators.forEach { generator ->
             val item = generator(currentRowState)
             currentRowState.add(item)
             result.add(transform(item))
@@ -147,20 +206,6 @@ class SwitchBoardService(
 
     // Cache the empty generator
     private val EMPTY_GENERATOR: (List<DataTableItem>) -> DataTableItem = { DataTableItem() }
-
-//    private fun <T> generateRow(
-//        makers: List<MakerEnum>,
-//        generators: Map<MakerEnum, (List<DataTableItem>) -> DataTableItem>,
-//        transform: (DataTableItem) -> T
-//    ): List<T> {
-//        val currentRowState = ArrayList<DataTableItem>(makers.size)
-//        return makers.map { maker ->
-//            val generator = generators[maker] ?: { _: List<DataTableItem> -> DataTableItem() }
-//            val item = generator(currentRowState)
-//            currentRowState.add(item)
-//            transform(item)
-//        }
-//    }
 
     private inner class PerformanceTracker(
         private val totalRows: Int,

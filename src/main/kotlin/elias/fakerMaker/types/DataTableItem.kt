@@ -1,20 +1,12 @@
-package elias.fakerMaker.types.dto
+package elias.fakerMaker.types
 
 import elias.fakerMaker.enums.FakerEnum
+import elias.fakerMaker.enums.IdTypeEnum
 import elias.fakerMaker.enums.MakerEnum
 import elias.fakerMaker.enums.StatesEnum
 import elias.fakerMaker.fakers.Tech
+import java.time.LocalDate
 
-
-/*
- we need this object to hold
- maker
- fakers used
- original value (name of fictional character)
- derived value (name we're using)
- related makers used (ZIP, PHONE, CITY)
- wikiUrl
- */
 
 sealed class Influencer {
     data class State(val state: StatesEnum) : Influencer()
@@ -31,9 +23,11 @@ data class DataTableItem(
     val originalValue: String?          = Tech.people.random(),
     val derivedValue: String            = originalValue?.split(" ")?.first() ?: "",
     val wikiUrl: String?                = "",
-    val influencedBy: List<Influencer>? = listOf(
-        Influencer.State(StatesEnum.AR),
-    )
+    val influencedBy: List<Influencer>? = listOf( Influencer.State(StatesEnum.AR), ),
+    val dateRange: Pair<LocalDate, LocalDate>? = Pair(LocalDate.now(), LocalDate.now()),
+    val numberRange: Pair<Number, Number>?     = Pair(0, 100),
+    val priceRange: Pair<Double, Double>?      = Pair(1.0, 100.0),
+    val idTypeEnum: IdTypeEnum?                = IdTypeEnum.UUID,
 ) {
     override fun toString(): String {
         return """

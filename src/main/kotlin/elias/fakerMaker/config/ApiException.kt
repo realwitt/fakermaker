@@ -1,4 +1,4 @@
-package elias.fakerMaker.config.exception
+package elias.fakerMaker.config
 
 import org.springframework.http.HttpStatus
 

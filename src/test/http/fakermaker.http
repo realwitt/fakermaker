@@ -1,5 +1,5 @@
 ### Generate test data table with 50 records
-POST http://localhost:8181/api/fakermaker/dataTable/1
+POST http://localhost:8181/api/fakermaker/dataTable/
 Content-Type: application/json
 
 {
@@ -116,7 +116,7 @@ Content-Type: application/json
 }
 
 ### Download 1M records with specified schema
-POST http://localhost:8181/api/fakermaker/download/1
+POST http://localhost:8181/api/fakermaker/csv/1
 Content-Type: application/json
 
 {
