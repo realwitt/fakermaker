@@ -82,7 +82,7 @@ class SwitchBoardService(
         }
     }
 
-    fun buildDataTable(rowCount: Int, schema: Schema): Flow<DataTableDto> = channelFlow {
+    suspend fun buildDataTable(rowCount: Int, schema: Schema): DataTableDto {
         val startTime = System.nanoTime()
         val fakers = schema.fakers
         val makers = schema.makers.map { it.makerEnum }
@@ -96,23 +96,25 @@ class SwitchBoardService(
         val generators = initGenerators(fakers, sortedMakerConfigs)
 
         try {
-            withContext(workerContext) {
-                // Create the DataTableDto with headers
-                val headers = sortedMakerConfigs.map { it.nickname }
+            return withContext(workerContext) {
+                // Create rows in batches
+                val allRows = mutableListOf<DataTableItem>()
 
-                // Process data in batches
                 (0 until rowCount).chunked(BATCH_SIZE).forEach { chunk ->
                     val rows = chunk.map {
-                        async { generateRow(sortedMakerConfigs, generators) { it } }
+                        async {
+                            generateRow(sortedMakerConfigs, generators) { it }
+                                .first() // Since we're only generating one item at a time now
+                        }
                     }.awaitAll()
-
-                    // Create and send DataTableDto for this batch
-                    val dto = DataTableDto(
-                        headers = headers,
-                        data = rows
-                    )
-                    send(dto)
+                    allRows.addAll(rows)
                 }
+
+                // Return single DataTableDto with all data
+                DataTableDto(
+                    headers = sortedMakerConfigs.map { it.nickname },
+                    data = allRows
+                )
             }
         } finally {
             NameGenerator.clearCache()
@@ -120,7 +122,6 @@ class SwitchBoardService(
             performanceTracker.logPerformance(startTime)
         }
     }
-
     suspend fun buildCsv(rowCount: Int, schema: Schema): String {
         val startTime = System.nanoTime()
 

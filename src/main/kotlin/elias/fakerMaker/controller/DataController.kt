@@ -7,7 +7,9 @@ import elias.fakerMaker.enums.MakerEnum
 import elias.fakerMaker.types.model.Schema
 import elias.fakerMaker.service.SwitchBoardService
 import elias.fakerMaker.types.dto.DataTableDto
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.reactor.asFlux
+import kotlinx.coroutines.withContext
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -21,27 +23,20 @@ class DataController(
     private val switchBoardService: SwitchBoardService
 ) {
     @PostMapping("/dataTable/")
-    fun populateDataTable(
-        // should we use a pageable object here?
-        // we could just default to 200 rows of data then page client side
+    suspend fun populateDataTable(
         @RequestBody schema: Schema
-    ): Flux<DataTableDto> {
+    ): DataTableDto = withContext(Dispatchers.IO) {
         val rowCount = 200
         println("parsed schema looks like:")
         println(schema)
-        return switchBoardService
-            .buildDataTable(
-                rowCount,
-                schema
-            )
-            .asFlux()
+        switchBoardService.buildDataTable(rowCount, schema)
     }
 
     @PostMapping("/csv/{count}")
     suspend fun getFakeData(
         @PathVariable count: Int,
         @RequestBody schema: Schema
-    ): ResponseEntity<String> {
+    ): ResponseEntity<String> = withContext(Dispatchers.IO) {
         println("parsed schema looks like:")
         println(schema)
         val csvData = switchBoardService.buildCsv(
@@ -49,11 +44,12 @@ class DataController(
             schema
         )
 
-        return ResponseEntity.ok()
+        ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=fakeData.csv")
             .contentType(MediaType.parseMediaType("text/csv"))
             .body(csvData)
     }
+
 
     @GetMapping("/fakermakers")
     fun getSchema(): FakerMakers {
