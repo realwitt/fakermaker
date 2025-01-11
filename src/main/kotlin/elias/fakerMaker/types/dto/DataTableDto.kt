@@ -4,7 +4,7 @@ import elias.fakerMaker.types.DataTableItem
 
 data class DataTableDto(
     val headers: List<String> = listOf(""),
-    val data: List<DataTableItem> = listOf(DataTableItem())
+    val data: List<List<DataTableItem>> = listOf(listOf(DataTableItem()))
 )
 
 /*

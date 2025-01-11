@@ -98,19 +98,27 @@ class SwitchBoardService(
         try {
             return withContext(workerContext) {
                 // Create rows in batches
-                val allRows = mutableListOf<DataTableItem>()
+                val allRows = mutableListOf<List<DataTableItem>>()
 
                 (0 until rowCount).chunked(BATCH_SIZE).forEach { chunk ->
                     val rows = chunk.map {
                         async {
-                            generateRow(sortedMakerConfigs, generators) { it }
-                                .first() // Since we're only generating one item at a time now
+                            // Generate the full row of DataTableItems directly
+                            val currentRowState = ArrayList<DataTableItem>(sortedMakerConfigs.size)
+                            val rowItems = ArrayList<DataTableItem>(sortedMakerConfigs.size)
+
+                            generators.forEach { generator ->
+                                val item = generator(currentRowState)
+                                currentRowState.add(item)
+                                rowItems.add(item)
+                            }
+                            rowItems
                         }
                     }.awaitAll()
                     allRows.addAll(rows)
                 }
 
-                // Return single DataTableDto with all data
+                // Return DataTableDto with all data
                 DataTableDto(
                     headers = sortedMakerConfigs.map { it.nickname },
                     data = allRows
@@ -122,6 +130,7 @@ class SwitchBoardService(
             performanceTracker.logPerformance(startTime)
         }
     }
+
     suspend fun buildCsv(rowCount: Int, schema: Schema): String {
         val startTime = System.nanoTime()
 
