@@ -98,7 +98,7 @@ class SwitchBoardService(
         try {
             withContext(workerContext) {
                 // Create the DataTableDto with headers
-                val headers = sortedMakerConfigs.map { it.nickName }
+                val headers = sortedMakerConfigs.map { it.nickname }
 
                 // Process data in batches
                 (0 until rowCount).chunked(BATCH_SIZE).forEach { chunk ->
@@ -139,7 +139,7 @@ class SwitchBoardService(
                     .build(writer)
                     .use { csv ->
                         // Write header - using nickName from MakerConfig instead of enum name
-                        csv.writeRecord(sortedMakerConfigs.map { it.nickName })
+                        csv.writeRecord(sortedMakerConfigs.map { it.nickname })
 
                         // Generate and write data in batches
                         withContext(workerContext) {

@@ -16,6 +16,7 @@ import reactor.core.publisher.Flux
 
 @RestController
 @RequestMapping("/api/fakermaker")
+@CrossOrigin(origins = ["http://localhost:4321"])
 class DataController(
     private val switchBoardService: SwitchBoardService
 ) {

@@ -1,8 +1,33 @@
--- liquibase formatted sql
-
--- changeset eliaswitt:1
--- CREATE TABLE session
--- (
---     id                  SERIAL PRIMARY KEY,
---     <whatever DS we decide>
+-- -- liquibase formatted sql
+--
+-- -- changeset eliaswitt:1
+-- CREATE TABLE schema_session (
+--                                 id SERIAL PRIMARY KEY,
+--     -- Session identifier
+--                                 session_id VARCHAR(255),
+--     -- Store fakers as JSON array of strings
+--                                 fakers JSONB NOT NULL DEFAULT '[]',
+--     -- Store makers config as JSON array of objects
+--                                 makers JSONB NOT NULL DEFAULT '[]',
+--     -- Audit fields
+--                                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+--                                 updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+--     -- Index for faster lookups
+--                                 CONSTRAINT unique_session_id UNIQUE (session_id)
 -- );
+-- -- Add index for session_id queries
+-- CREATE INDEX idx_schema_session_id ON schema_session(session_id);
+--
+-- -- Trigger to automatically update updated_at timestamp
+-- CREATE OR REPLACE FUNCTION update_updated_at_column()
+--     RETURNS TRIGGER AS $$
+-- BEGIN
+--     NEW.updated_at = CURRENT_TIMESTAMP;
+--     RETURN NEW;
+-- END;
+-- $$ language 'plpgsql';
+--
+-- CREATE TRIGGER update_schema_session_updated_at
+--     BEFORE UPDATE ON schema_session
+--     FOR EACH ROW
+-- EXECUTE FUNCTION update_updated_at_column();

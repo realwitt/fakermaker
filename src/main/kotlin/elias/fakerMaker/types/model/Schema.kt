@@ -37,7 +37,7 @@ data class Schema(
         makers.forEachIndexed { index, maker ->
             sb.append("    {\n")
             sb.append("      makerEnum : ${maker.makerEnum.name},\n")
-            sb.append("      nickName  : ${maker.nickName},\n")
+            sb.append("      nickName  : ${maker.nickname},\n")
             sb.append("      nullable  : ${maker.nullable}")
 
             // Handle different range types

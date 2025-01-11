@@ -14,7 +14,7 @@ data class MakerConfig(
     @SerialName("makerEnum")
     @Serializable(with = EnumMakerSerializer::class)
     val makerEnum: MakerEnum,
-    val nickName: String,
+    val nickname: String,
     val nullable: Boolean = false,
     @Serializable(with = RangeDateSerializer::class)
     val dateRange: Pair<@Serializable(with = LocalDateSerializer::class) LocalDate,
@@ -30,7 +30,7 @@ data class MakerConfig(
         return buildString {
             append("{\n")
             append("      makerEnum : ${makerEnum.name},\n")
-            append("      nickName  : \"$nickName\",\n")
+            append("      nickName  : \"$nickname\",\n")
             append("      nullable  : $nullable")
 
             when {

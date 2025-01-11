@@ -11,57 +11,57 @@ Content-Type: application/json
   "makers": [
     {
       "makerEnum": "First Name",
-      "nickName": "first name",
+      "nickname": "first name",
       "nullable": false
     },
     {
       "makerEnum": "Last Name",
-      "nickName": "last name",
+      "nickname": "last name",
       "nullable": false
     },
     {
       "makerEnum": "Company Name",
-      "nickName": "company name",
+      "nickname": "company name",
       "nullable": false
     },
     {
       "makerEnum": "Email",
-      "nickName": "email",
+      "nickname": "email",
       "nullable": true
     },
     {
       "makerEnum": "Phone Number",
-      "nickName": "phone",
+      "nickname": "phone",
       "nullable": false
     },
     {
       "makerEnum": "Address",
-      "nickName": "address",
+      "nickname": "address",
       "nullable": false
     },
     {
       "makerEnum": "Address 2",
-      "nickName": "address2",
+      "nickname": "address2",
       "nullable": false
     },
     {
       "makerEnum": "State",
-      "nickName": "state",
+      "nickname": "state",
       "nullable": false
     },
     {
       "makerEnum": "City",
-      "nickName": "city",
+      "nickname": "city",
       "nullable": false
     },
     {
       "makerEnum": "Zip",
-      "nickName": "zip",
+      "nickname": "zip",
       "nullable": false
     },
     {
       "makerEnum": "Price",
-      "nickName": "price",
+      "nickname": "price",
       "nullable": false,
       "priceRange": [
         12.99,
@@ -70,7 +70,7 @@ Content-Type: application/json
     },
     {
       "makerEnum": "Number",
-      "nickName": "number of pets",
+      "nickname": "number of pets",
       "nullable": false,
       "numberRange": [
         "1",
@@ -83,40 +83,40 @@ Content-Type: application/json
         "JAN-01-1970",
         "FEB-04-2006"
       ],
-      "nickName": "birthday",
+      "nickname": "birthday",
       "nullable": false
     },
     {
       "makerEnum": "True/False",
-      "nickName": "is attending",
+      "nickname": "is attending",
       "nullable": false
     },
     {
       "makerEnum": "Id",
       "idTypeEnum" : "UUID",
-      "nickName": "itemId",
+      "nickname": "itemId",
       "nullable": false
     },
     {
       "makerEnum": "Credit Card",
-      "nickName": "card number",
+      "nickname": "card number",
       "nullable": false
     },
     {
       "makerEnum": "Credit Card",
-      "nickName": "card number",
+      "nickname": "card number",
       "nullable": false
     },
     {
       "makerEnum": "Credit Card CVV",
-      "nickName": "card CVV",
+      "nickname": "card CVV",
       "nullable": false
     }
   ]
 }
 
 ### Download 1M records with specified schema
-POST http://localhost:8181/api/fakermaker/csv/1
+POST http://localhost:8181/api/fakermaker/csv/100
 Content-Type: application/json
 
 {
@@ -128,57 +128,52 @@ Content-Type: application/json
   "makers": [
     {
       "makerEnum": "First Name",
-      "nickName": "first name",
+      "nickname": "first name",
       "nullable": false
     },
     {
       "makerEnum": "Last Name",
-      "nickName": "last name",
-      "nullable": false
-    },
-    {
-      "makerEnum": "Company Name",
-      "nickName": "company name",
+      "nickname": "last name",
       "nullable": false
     },
     {
       "makerEnum": "Email",
-      "nickName": "email",
+      "nickname": "email",
       "nullable": true
     },
     {
       "makerEnum": "Phone Number",
-      "nickName": "phone",
+      "nickname": "phone",
       "nullable": false
     },
     {
       "makerEnum": "Address",
-      "nickName": "address",
+      "nickname": "address",
       "nullable": false
     },
     {
       "makerEnum": "Address 2",
-      "nickName": "address2",
+      "nickname": "address2",
       "nullable": false
     },
     {
       "makerEnum": "State",
-      "nickName": "state",
+      "nickname": "state",
       "nullable": false
     },
     {
       "makerEnum": "City",
-      "nickName": "city",
+      "nickname": "city",
       "nullable": false
     },
     {
       "makerEnum": "Zip",
-      "nickName": "zip",
+      "nickname": "zip",
       "nullable": false
     },
     {
       "makerEnum": "Price",
-      "nickName": "price",
+      "nickname": "price",
       "nullable": false,
       "priceRange": [
         12.99,
@@ -187,7 +182,7 @@ Content-Type: application/json
     },
     {
       "makerEnum": "Number",
-      "nickName": "number of pets",
+      "nickname": "number of pets",
       "nullable": false,
       "numberRange": [
         "1",
@@ -200,33 +195,33 @@ Content-Type: application/json
         "JAN-01-1970",
         "FEB-04-2006"
       ],
-      "nickName": "birthday",
+      "nickname": "birthday",
       "nullable": false
     },
     {
       "makerEnum": "True/False",
-      "nickName": "is attending",
+      "nickname": "is attending",
       "nullable": false
     },
     {
       "makerEnum": "Id",
       "idTypeEnum" : "UUID",
-      "nickName": "itemId",
+      "nickname": "itemId",
       "nullable": false
     },
     {
       "makerEnum": "Credit Card",
-      "nickName": "card number",
+      "nickname": "card number",
       "nullable": false
     },
     {
       "makerEnum": "Credit Card",
-      "nickName": "card number",
+      "nickname": "card number",
       "nullable": false
     },
     {
       "makerEnum": "Credit Card CVV",
-      "nickName": "card CVV",
+      "nickname": "card CVV",
       "nullable": false
     }
   ]
