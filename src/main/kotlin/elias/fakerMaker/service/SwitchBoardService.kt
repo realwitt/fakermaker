@@ -48,37 +48,37 @@ class SwitchBoardService(
         when (config.makerEnum) {
             MakerEnum.NUMBER_PRICE -> { _ ->
                 NumberGenerator.priceRange(
-                    min = config.priceRange?.first,  // Pass Double directly
-                    max = config.priceRange?.second   // Pass Double directly
+                    min = config.priceRange?.first,
+                    max = config.priceRange?.second,
+                    nickname = config.nickname
                 )
             }
             MakerEnum.NUMBER_REGULAR -> { _ ->
                 NumberGenerator.numRange(
                     config.numberRange?.first,
-                    config.numberRange?.second
+                    config.numberRange?.second,
+                    config.nickname
                 )
             }
             MakerEnum.DATE -> { _ ->
                 val startDate = config.dateRange?.first?.atStartOfDay()?.toInstant(ZoneOffset.UTC)?.toEpochMilli()
                 val endDate = config.dateRange?.second?.atStartOfDay()?.toInstant(ZoneOffset.UTC)?.toEpochMilli()
-                DateGenerator.dateRange(startDate, endDate)
+                DateGenerator.dateRange(startDate, endDate, config.nickname)
             }
-            MakerEnum.STATE -> { _ -> AmericaGenerator.state() }
-            MakerEnum.CITY -> { items -> AmericaGenerator.city(items) }
-            MakerEnum.ZIP -> { items -> AmericaGenerator.zip(items) }
-            MakerEnum.PHONE -> { items -> AmericaGenerator.phone(items) }
-            MakerEnum.EMAIL -> { items -> EmailGenerator.email(items) }
-            MakerEnum.NAME_FIRST -> { _ -> NameGenerator.firstName(fakers) }
-            MakerEnum.NAME_LAST -> { items -> NameGenerator.lastName(items, fakers) }
-            MakerEnum.NAME_COMPANY -> { items -> NameGenerator.companyName(items, fakers) }
-            MakerEnum.ADDRESS -> { _ -> AmericaGenerator.address() }
-            MakerEnum.ADDRESS_2 -> { _ -> AmericaGenerator.address2() }
-            MakerEnum.CREDIT_CARD_NUMBER -> { _ -> CreditCardGenerator.creditCard() }
-                // todo add a parameter so we can explicitly tell it what type of credit cards we want
-            MakerEnum.CREDIT_CARD_CVV -> { items -> CreditCardGenerator.cvv(items) }
-                // todo add a parameter so we can explicitly tell it what type of IDs we want
-            MakerEnum.ID -> { _ -> IdGenerator.id() }
-            MakerEnum.BOOLEAN -> { _ -> BooleanGenerator.bool() }
+            MakerEnum.STATE -> { _ -> AmericaGenerator.state(config.nickname) }
+            MakerEnum.CITY -> { items -> AmericaGenerator.city(items, config.nickname) }
+            MakerEnum.ZIP -> { items -> AmericaGenerator.zip(items, config.nickname) }
+            MakerEnum.PHONE -> { items -> AmericaGenerator.phone(items, config.nickname) }
+            MakerEnum.EMAIL -> { items -> EmailGenerator.email(items, config.nickname) }
+            MakerEnum.NAME_FIRST -> { _ -> NameGenerator.firstName(fakers, config.nickname) }
+            MakerEnum.NAME_LAST -> { items -> NameGenerator.lastName(items, fakers, config.nickname) }
+            MakerEnum.NAME_COMPANY -> { items -> NameGenerator.companyName(items, fakers, config.nickname) }
+            MakerEnum.ADDRESS -> { _ -> AmericaGenerator.address(config.nickname) }
+            MakerEnum.ADDRESS_2 -> { _ -> AmericaGenerator.address2(config.nickname) }
+            MakerEnum.CREDIT_CARD_NUMBER -> { _ -> CreditCardGenerator.creditCard(config.nickname) }
+            MakerEnum.CREDIT_CARD_CVV -> { items -> CreditCardGenerator.cvv(items, config.nickname) }
+            MakerEnum.ID -> { _ -> IdGenerator.id(config.nickname) }
+            MakerEnum.BOOLEAN -> { _ -> BooleanGenerator.bool(config.nickname) }
         }
     }
 
@@ -98,30 +98,28 @@ class SwitchBoardService(
         try {
             return withContext(workerContext) {
                 // Create rows in batches
-                val allRows = mutableListOf<List<DataTableItem>>()
+                val allItems = mutableListOf<DataTableItem>()
 
                 (0 until rowCount).chunked(BATCH_SIZE).forEach { chunk ->
-                    val rows = chunk.map {
+                    val items = chunk.map {
                         async {
-                            // Generate the full row of DataTableItems directly
                             val currentRowState = ArrayList<DataTableItem>(sortedMakerConfigs.size)
-                            val rowItems = ArrayList<DataTableItem>(sortedMakerConfigs.size)
-
-                            generators.forEach { generator ->
+                            generators.zip(sortedMakerConfigs).map { (generator, config) ->
                                 val item = generator(currentRowState)
-                                currentRowState.add(item)
-                                rowItems.add(item)
+                                // Add the nickname from the config
+                                val itemWithNickname = item.copy(nickname = config.nickname)
+                                currentRowState.add(itemWithNickname)
+                                itemWithNickname
                             }
-                            rowItems
                         }
                     }.awaitAll()
-                    allRows.addAll(rows)
+                    allItems.addAll(items.flatten())
                 }
 
                 // Return DataTableDto with all data
                 DataTableDto(
                     headers = sortedMakerConfigs.map { it.nickname },
-                    data = allRows
+                    data = allItems
                 )
             }
         } finally {

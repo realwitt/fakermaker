@@ -30,7 +30,7 @@ object NumberGenerator {
         }
     }
 
-    fun numRange(num1: Int?, num2: Int?): DataTableItem {
+    fun numRange(num1: Int?, num2: Int?, nickname: String): DataTableItem {
         val (start, end) = if (num1 != null && num2 != null) {
             if (num1 <= num2) num1 to num2 else num2 to num1
         } else {
@@ -45,11 +45,12 @@ object NumberGenerator {
             derivedValue = Random.nextInt(start, end + 1).toString(),
             wikiUrl = null,
             influencedBy = null,
-            idTypeEnum = null
+            idTypeEnum = null,
+            nickname = nickname,
         )
     }
 
-    fun priceRange(min: Double?, max: Double?): DataTableItem {
+    fun priceRange(min: Double?, max: Double?, nickname: String): DataTableItem {
         val (start, end) = if (min != null && max != null) {
             if (min <= max) min to max else max to min
         } else {
@@ -69,7 +70,8 @@ object NumberGenerator {
             derivedValue = formattedPrice,
             wikiUrl = null,
             influencedBy = null,
-            idTypeEnum = null
+            idTypeEnum = null,
+            nickname = nickname,
         )
     }
 

@@ -164,7 +164,7 @@ object NameGenerator {
 
     private val validFakersCache = ThreadLocal.withInitial { ValidFakersCache() }
 
-    fun firstName(fakers: List<FakerEnum>?): DataTableItem {
+    fun firstName(fakers: List<FakerEnum>?, nickname: String): DataTableItem {
         val validFaker = validFakersCache.get().getValidCharacterFakers(fakers).random()
         val fullName = staticCharacterLists[validFaker]?.random()
             ?: throw IllegalStateException("Unable to find character list for faker: ${validFaker.prettyName}")
@@ -175,12 +175,13 @@ object NameGenerator {
             originalValue = fullName,
             derivedValue = extractFirstName(fullName),
             wikiUrl = WikiUtil.createFandomWikiLink(validFaker, fullName, false),
-            influencedBy =  null,
+            influencedBy = null,
             idTypeEnum = null,
+            nickname = nickname,
         )
     }
 
-    fun lastName(existingItems: List<DataTableItem>?, fakers: List<FakerEnum>?): DataTableItem {
+    fun lastName(existingItems: List<DataTableItem>?, fakers: List<FakerEnum>?, nickname: String): DataTableItem {
         val firstNameItem = existingItems?.find { it.maker == MakerEnum.NAME_FIRST }
 
         // 50% chance to use the same character's last name if we have a firstName
@@ -204,6 +205,7 @@ object NameGenerator {
                     wikiUrl = WikiUtil.createFandomWikiLink(faker, fullName, false),
                     influencedBy =  null,
                     idTypeEnum = null,
+                    nickname = nickname,
                 )
             }
         }
@@ -221,10 +223,11 @@ object NameGenerator {
             wikiUrl = WikiUtil.createFandomWikiLink(validFaker, fullName, false),
             influencedBy =  null,
             idTypeEnum = null,
+            nickname = nickname,
         )
     }
 
-    fun companyName(existingItems: List<DataTableItem>?, fakers: List<FakerEnum>?): DataTableItem {
+    fun companyName(existingItems: List<DataTableItem>?, fakers: List<FakerEnum>?, nickname: String): DataTableItem {
         val firstNameItem = existingItems?.find { it.maker == MakerEnum.NAME_FIRST }
         val lastNameItem = existingItems?.find { it.maker == MakerEnum.NAME_LAST }
 
@@ -245,6 +248,7 @@ object NameGenerator {
                         wikiUrl = WikiUtil.createFandomWikiLink(firstNameFaker, companyName, true),
                         influencedBy =  null,
                         idTypeEnum = null,
+                        nickname = nickname,
                     )
                 }
             }
@@ -264,6 +268,7 @@ object NameGenerator {
             wikiUrl = WikiUtil.createFandomWikiLink(selectedFaker, companyName, true),
             influencedBy =  null,
             idTypeEnum = null,
+            nickname = nickname,
         )
     }
 

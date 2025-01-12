@@ -17,7 +17,7 @@ object DateGenerator {
     // Calculate default start date once (100 years ago)
     private val DEFAULT_START = System.currentTimeMillis() - (100L * 365 * 24 * 60 * 60 * 1000)
 
-    fun dateRange(start: Long?, end: Long?): DataTableItem {
+    fun dateRange(start: Long?, end: Long?, nickname: String): DataTableItem {
         val startTime = start ?: DEFAULT_START
         val endTime = end ?: System.currentTimeMillis()
 
@@ -34,7 +34,8 @@ object DateGenerator {
                 .uppercase(),
             wikiUrl = null,
             influencedBy = null,
-            idTypeEnum = null
+            idTypeEnum = null,
+            nickname = nickname,
         )
     }
 }

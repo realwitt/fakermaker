@@ -28,7 +28,7 @@ object CreditCardGenerator {
     // ThreadLocal StringBuilder for CVV generation
     private val cvvBuilder = ThreadLocal.withInitial { StringBuilder(4) }
 
-    fun creditCard(): DataTableItem {
+    fun creditCard(nickname: String): DataTableItem {
         // Get random card type info
         val (cardType, info) = cardTypeEntries.random()
         val prefix = info.prefixes.random()
@@ -43,11 +43,12 @@ object CreditCardGenerator {
             derivedValue = number,
             wikiUrl = null,
             influencedBy = null,
-            idTypeEnum = null
+            idTypeEnum = null,
+            nickname = nickname,
         )
     }
 
-    fun cvv(items: List<DataTableItem>?): DataTableItem {
+    fun cvv(items: List<DataTableItem>?, nickname: String): DataTableItem {
         val cardItem = items?.find { it.maker == MakerEnum.CREDIT_CARD_NUMBER }
         val cardType = cardItem?.originalValue ?: cardTypeEntries.random().key
         val cvvLength = cardTypes[cardType]?.cvvLength ?: 3
@@ -66,7 +67,8 @@ object CreditCardGenerator {
             derivedValue = cvv,
             wikiUrl = null,
             influencedBy = null,
-            idTypeEnum = null
+            idTypeEnum = null,
+            nickname = nickname,
         )
     }
 

@@ -15,15 +15,14 @@ sealed class Influencer {
 }
 
 data class DataTableItem(
-    // should we add the nickName and nullable property here or higher up?
-    // maybe we don't need the little bit of overhead by adding it to every item
-    val maker: MakerEnum?               = MakerEnum.NAME_FIRST,
-    val fakersUsed: List<FakerEnum>?    = listOf(FakerEnum.TECH),
-    val originalValue: String?          = Tech.people.random(),
-    val derivedValue: String            = originalValue?.split(" ")?.first() ?: "",
-    val wikiUrl: String?                = "",
-    val influencedBy: List<Influencer>? = listOf( Influencer.State(StatesEnum.AR), ),
-    val idTypeEnum: IdTypeEnum?                = IdTypeEnum.UUID,
+    val maker: MakerEnum? = MakerEnum.NAME_FIRST,
+    val fakersUsed: List<FakerEnum>? = listOf(FakerEnum.TECH),
+    val originalValue: String? = Tech.people.random(),
+    val derivedValue: String = originalValue?.split(" ")?.first() ?: "",
+    val wikiUrl: String? = "",
+    val influencedBy: List<Influencer>? = listOf(Influencer.State(StatesEnum.AR)),
+    val idTypeEnum: IdTypeEnum? = IdTypeEnum.UUID,
+    val nickname: String = ""
 ) {
     override fun toString(): String {
         return """
@@ -34,6 +33,7 @@ data class DataTableItem(
             |    derivedValue   = '$derivedValue',
             |    wikiUrl        = ${wikiUrl?.let { "'$it'" } ?: "null"}
             |    influencedBy   = ${influencedBy?.let { "'$it'" } ?: "null"}
+            |    nickname:      = ${nickname.let { "'$it'" } ?: "null"}
             |}
         """.trimMargin()
     }

@@ -9,7 +9,7 @@ object BooleanGenerator {
     private const val TRUE_STRING = "True"
     private const val FALSE_STRING = "False"
 
-    fun bool(): DataTableItem {
+    fun bool(nickname: String): DataTableItem {
         val value = if (Random.nextInt(2) == 1) TRUE_STRING else FALSE_STRING
 
         return DataTableItem(
@@ -19,7 +19,8 @@ object BooleanGenerator {
             derivedValue = value,
             wikiUrl = null,
             influencedBy = null,
-            idTypeEnum = null
+            idTypeEnum = null,
+            nickname = nickname,
         )
     }
 }

@@ -154,7 +154,7 @@ object AmericaGenerator {
             }
     }
 
-    fun state(): DataTableItem {
+    fun state(nickname: String): DataTableItem {
         val state = validStates.random()
 
         return DataTableItem(
@@ -164,11 +164,12 @@ object AmericaGenerator {
             derivedValue  = state.toString(),
             wikiUrl       = WikiUtil.createStateWikiLink(state),
             influencedBy  = listOf(Influencer.State(state)),
-            idTypeEnum = null
+            idTypeEnum = null,
+            nickname = nickname,
         )
     }
 
-    fun city(existingItems: List<DataTableItem>?): DataTableItem {
+    fun city(existingItems: List<DataTableItem>?, nickname: String): DataTableItem {
         val state = existingItems.findState() ?: validStates.random()
         val cities = stateCityCache[state] ?: throw IllegalStateException(
             "No cities found for state $state. This should never happen as we filter invalid states."
@@ -185,11 +186,12 @@ object AmericaGenerator {
                 Influencer.State(state),
                 Influencer.City(city)
             ),
-            idTypeEnum = null
+            idTypeEnum = null,
+            nickname = nickname
         )
     }
 
-    fun zip(existingItems: List<DataTableItem>?): DataTableItem {
+    fun zip(existingItems: List<DataTableItem>?, nickname: String): DataTableItem {
         val (state, city, zip) = if (existingItems.isNullOrEmpty()) {
             generateRandomStateCityZip()
         } else {
@@ -222,11 +224,12 @@ object AmericaGenerator {
                 Influencer.City(city),
                 Influencer.Zip(zip)
             ),
-            idTypeEnum = null
+            idTypeEnum = null,
+            nickname = nickname,
         )
     }
 
-    fun phone(existingItems: List<DataTableItem>?): DataTableItem {
+    fun phone(existingItems: List<DataTableItem>?, nickname: String): DataTableItem {
         val (state, city, areaCode) = if (existingItems.isNullOrEmpty()) {
             generateRandomStateCityAreaCode()
         } else {
@@ -306,7 +309,8 @@ object AmericaGenerator {
                 Influencer.AreaCode(areaCode),
                 existingItems?.find { it.maker == MakerEnum.ZIP }?.let { Influencer.Zip(it.derivedValue) }
             ),
-            idTypeEnum = null
+            idTypeEnum = null,
+            nickname = nickname
         )
     }
 
@@ -322,7 +326,7 @@ object AmericaGenerator {
     private fun getDirection(useAbbrev: Boolean): String =
         streetComponents.cachedDirections.random().let { if (useAbbrev) it.first else it.second }
 
-    fun address(): DataTableItem {
+    fun address(nickname: String): DataTableItem {
         val numberCount = when (Random.nextInt(3)) {
             0 -> Random.nextInt(1, 10)
             1 -> Random.nextInt(100, 999)
@@ -360,11 +364,12 @@ object AmericaGenerator {
             derivedValue  = addressString,
             wikiUrl       = null,
             influencedBy  = null,
-            idTypeEnum    = null
+            idTypeEnum    = null,
+            nickname = nickname,
         )
     }
 
-    fun address2(): DataTableItem {
+    fun address2(nickname: String): DataTableItem {
         val baseAddress = streetComponents.cachedAddress2.random().let {
             if (Random.nextBoolean()) it.abbreviation else it.fullName
         }
@@ -381,7 +386,8 @@ object AmericaGenerator {
             derivedValue  = "$baseAddress $number",
             wikiUrl       = null,
             influencedBy  = null,
-            idTypeEnum    = null
+            idTypeEnum    = null,
+            nickname = nickname
         )
     }
 

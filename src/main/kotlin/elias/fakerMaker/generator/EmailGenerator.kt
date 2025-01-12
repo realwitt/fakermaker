@@ -106,11 +106,12 @@ object EmailGenerator {
         }.lowercase()
     }
 
-    fun email(dataTableItems: List<DataTableItem>?): DataTableItem {
+    fun email(dataTableItems: List<DataTableItem>?, nickname: String): DataTableItem {
         if (dataTableItems == null) {
             return generateDefaultEmail(
                 localPart = LocalPartGenerators.random().filterNot { it.isWhitespace() },
-                dataTableItems = null
+                dataTableItems = null,
+                nickname
             )
         }
 
@@ -123,14 +124,14 @@ object EmailGenerator {
         val random = Random.nextDouble()
         return when {
             // Company domain (50% chance if company exists)
-            companyItem != null && random < 0.5 -> createCompanyEmail(localPart, companyItem)
+            companyItem != null && random < 0.5 -> createCompanyEmail(localPart, companyItem, nickname)
 
             // Personal domain (5% chance if both names exist)
             firstNameItem != null && lastNameItem != null && random in 0.5..0.55 ->
-                createPersonalEmail(localPart, firstNameItem.derivedValue, lastNameItem.derivedValue)
+                createPersonalEmail(localPart, firstNameItem.derivedValue, lastNameItem.derivedValue, nickname)
 
             // Default case with cached faker validation
-            else -> generateDefaultEmail(localPart, dataTableItems)
+            else -> generateDefaultEmail(localPart, dataTableItems, nickname)
         }
     }
 
@@ -142,7 +143,7 @@ object EmailGenerator {
         else -> LocalPartGenerators.random().filterNot { it.isWhitespace() }
     }
 
-    private fun createCompanyEmail(localPart: String, companyItem: DataTableItem): DataTableItem {
+    private fun createCompanyEmail(localPart: String, companyItem: DataTableItem, nickname: String): DataTableItem {
         val domain = companyItem.derivedValue.filter { it.isLetterOrDigit() }.lowercase()
         val tld = if (Random.nextDouble() < 0.8) COM_TLD else Tech.TLDs.random()
 
@@ -153,11 +154,12 @@ object EmailGenerator {
             derivedValue = "$localPart@$domain$tld",
             wikiUrl = companyItem.wikiUrl,
             influencedBy = null,
-            idTypeEnum = null
+            idTypeEnum = null,
+            nickname = nickname,
         )
     }
 
-    private fun createPersonalEmail(localPart: String, firstName: String, lastName: String): DataTableItem {
+    private fun createPersonalEmail(localPart: String, firstName: String, lastName: String, nickname: String): DataTableItem {
         val domain = "$firstName$lastName".filter { it.isLetterOrDigit() }.lowercase()
         return DataTableItem(
             maker = MakerEnum.EMAIL,
@@ -167,12 +169,14 @@ object EmailGenerator {
             wikiUrl = null,
             influencedBy = null,
             idTypeEnum = null,
+            nickname = nickname,
         )
     }
 
     private fun generateDefaultEmail(
         localPart: String,
-        dataTableItems: List<DataTableItem>?
+        dataTableItems: List<DataTableItem>?,
+        nickname: String
     ): DataTableItem {
         // Quick return for common case
         if (dataTableItems.isNullOrEmpty()) {
@@ -184,6 +188,7 @@ object EmailGenerator {
                 wikiUrl = null,
                 influencedBy = null,
                 idTypeEnum = null,
+                nickname = nickname,
             )
         }
 
@@ -200,14 +205,15 @@ object EmailGenerator {
                 derivedValue = "$localPart@${emailProviders.random()}",
                 wikiUrl = null,
                 influencedBy = null,
-                idTypeEnum = null
+                idTypeEnum = null,
+                nickname = nickname,
             )
         }
 
         // Use faker domain
         val faker = domainFakers.random()
         val domainValue = sanitizedDomainLists[faker]?.random()
-            ?: return generateDefaultEmail(localPart, null)
+            ?: return generateDefaultEmail(localPart, null, nickname)
 
         val tld = when(Random.nextDouble()) {
             in 0.85..0.90 -> ORG_TLD
@@ -222,7 +228,8 @@ object EmailGenerator {
             derivedValue = "$localPart@$domainValue$tld",
             wikiUrl = WikiUtil.createFandomWikiLink(faker, domainValue, false),
             influencedBy = null,
-            idTypeEnum = null
+            idTypeEnum = null,
+            nickname = nickname,
         )
     }
 

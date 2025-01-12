@@ -18,7 +18,7 @@ object IdGenerator {
     private val HEX_CHARS = "0123456789abcdef".toCharArray()
     private const val OBJECT_ID_LENGTH = 24
 
-    fun id(): DataTableItem {
+    fun id(nickname: String): DataTableItem {
         val idType = IdTypeEnum.entries.random()
         val generatedId = when(idType) {
             IdTypeEnum.UUID -> generateUUID()
@@ -35,7 +35,8 @@ object IdGenerator {
             derivedValue = generatedId,
             wikiUrl = null,
             influencedBy = null,
-            idTypeEnum = idType
+            idTypeEnum = idType,
+            nickname = nickname
         )
     }
 
