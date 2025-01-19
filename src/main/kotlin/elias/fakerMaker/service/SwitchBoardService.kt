@@ -9,8 +9,6 @@ import elias.fakerMaker.types.MakerConfig
 import elias.fakerMaker.types.dto.DataTableDto
 import elias.fakerMaker.types.model.Schema
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.channelFlow
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 import java.io.StringWriter
@@ -98,28 +96,27 @@ class SwitchBoardService(
         try {
             return withContext(workerContext) {
                 // Create rows in batches
-                val allItems = mutableListOf<DataTableItem>()
+                val allRows = mutableListOf<Map<String, DataTableItem>>()
 
                 (0 until rowCount).chunked(BATCH_SIZE).forEach { chunk ->
-                    val items = chunk.map {
+                    val rows = chunk.map {
                         async {
                             val currentRowState = ArrayList<DataTableItem>(sortedMakerConfigs.size)
-                            generators.zip(sortedMakerConfigs).map { (generator, config) ->
+                            generators.zip(sortedMakerConfigs).associate { (generator, config) ->
                                 val item = generator(currentRowState)
-                                // Add the nickname from the config
                                 val itemWithNickname = item.copy(nickname = config.nickname)
                                 currentRowState.add(itemWithNickname)
-                                itemWithNickname
+                                config.nickname to itemWithNickname
                             }
                         }
                     }.awaitAll()
-                    allItems.addAll(items.flatten())
+                    allRows.addAll(rows)
                 }
 
                 // Return DataTableDto with all data
                 DataTableDto(
                     headers = sortedMakerConfigs.map { it.nickname },
-                    data = allItems
+                    data = allRows
                 )
             }
         } finally {

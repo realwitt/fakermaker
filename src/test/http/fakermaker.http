@@ -103,11 +103,6 @@ Content-Type: application/json
       "nullable": false
     },
     {
-      "makerEnum": "Credit Card",
-      "nickname": "card number",
-      "nullable": false
-    },
-    {
       "makerEnum": "Credit Card CVV",
       "nickname": "card CVV",
       "nullable": false
@@ -116,7 +111,7 @@ Content-Type: application/json
 }
 
 ### Download 1M records with specified schema
-POST http://localhost:8181/api/fakermaker/csv/100
+POST http://localhost:8181/api/fakermaker/csv/1000000
 Content-Type: application/json
 
 {

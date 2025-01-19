@@ -20,9 +20,6 @@ enum class FakerEnum(val prettyName: String) {
     @SerialName("Call of Duty")
     CALL_OF_DUTY("Call of Duty"),
 
-    @SerialName("Clash of Clans")
-    CLASH_OF_CLANS("Clash of Clans"),
-
     @SerialName("Doctor Who")
     DOCTOR_WHO("Doctor Who"),
 
@@ -35,20 +32,8 @@ enum class FakerEnum(val prettyName: String) {
     @SerialName("Harry Potter")
     HARRY_POTTER("Harry Potter"),
 
-    @SerialName("How to Train Your Dragon")
-    HOW_TO_TRAIN_YOUR_DRAGON("How to Train Your Dragon"),
-
     @SerialName("Idiocracy")
     IDIOCRACY("Idiocracy"),
-
-    @SerialName("Indiana Jones")
-    INDIANA_JONES("Indiana Jones"),
-
-    @SerialName("Iron Man")
-    IRON_MAN("Iron Man"),
-
-    @SerialName("Jurassic Park")
-    JURASSIC_PARK("Jurassic Park"),
 
     @SerialName("King of the Hill")
     KING_OF_THE_HILL("King of the Hill"),
@@ -59,20 +44,11 @@ enum class FakerEnum(val prettyName: String) {
     @SerialName("Monk")
     MONK("Monk"),
 
-    @SerialName("Nacho Libre")
-    NACHO_LIBRE("Nacho Libre"),
-
     @SerialName("Parks and Recreation")
     PARKS_AND_REC("Parks and Recreation"),
 
-    @SerialName("Pirates of the Caribbean")
-    PIRATES_OF_THE_CARIBBEAN("Pirates of the Caribbean"),
-
     @SerialName("Pokemon")
     POKEMON("Pokemon"),
-
-    @SerialName("Rango")
-    RANGO("Rango"),
 
     @SerialName("Rick and Morty")
     RICK_AND_MORTY("Rick and Morty"),
@@ -95,9 +71,4 @@ enum class FakerEnum(val prettyName: String) {
     @SerialName("Throne of Glass")
     THRONE_OF_GLASS("Throne of Glass"),
 
-    @SerialName("Toy Story")
-    TOY_STORY("Toy Story"),
-
-    @SerialName("Transformers")
-    TRANSFORMERS("Transformers");
 }

@@ -135,6 +135,7 @@ object AmericaGenerator {
 
         // Get random zip code for that city
         val zip = zipCodes.randomOrNull() ?:
+        // we should never this, every city in the postal data has a zip
         throw IllegalStateException("No zip codes found for city $city in state $state")
 
         return Triple(state, city, zip)

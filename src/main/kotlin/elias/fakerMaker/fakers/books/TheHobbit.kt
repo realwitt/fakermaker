@@ -51,7 +51,7 @@ object TheHobbit {
         "Tom",
     )
 
-    val locations = listOf(
+    val companies = listOf(
         // Major Regions
         "The Shire",
         "Eriador",

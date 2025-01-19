@@ -6,6 +6,8 @@ import elias.fakerMaker.enums.MakerEnum
 import elias.fakerMaker.fakers.Tech
 import elias.fakerMaker.fakers.books.*
 import elias.fakerMaker.fakers.movies.BackToTheFuture
+import elias.fakerMaker.fakers.movies.Idiocracy
+import elias.fakerMaker.fakers.movies.StarWars
 import elias.fakerMaker.fakers.sports.Baseball
 import elias.fakerMaker.fakers.sports.Basketball
 import elias.fakerMaker.fakers.tvshows.*
@@ -24,12 +26,15 @@ object NameGenerator {
         FakerEnum.GAME_OF_THRONES,
         FakerEnum.GRAVITY_FALLS,
         FakerEnum.HARRY_POTTER,
+        FakerEnum.IDIOCRACY,
         FakerEnum.KING_OF_THE_HILL,
         FakerEnum.LORD_OF_THE_RINGS,
         FakerEnum.MONK,
         FakerEnum.PARKS_AND_REC,
+        FakerEnum.POKEMON,
         FakerEnum.RICK_AND_MORTY,
         FakerEnum.SILICON_VALLEY,
+        FakerEnum.STAR_WARS,
         FakerEnum.TECH,
         FakerEnum.THE_HOBBIT,
         FakerEnum.THE_OFFICE,
@@ -47,12 +52,15 @@ object NameGenerator {
         FakerEnum.GAME_OF_THRONES to GameOfThrones.characters.toList(),
         FakerEnum.GRAVITY_FALLS to GravityFalls.characters.toList(),
         FakerEnum.HARRY_POTTER to HarryPotter.characters.toList(),
+        FakerEnum.IDIOCRACY to Idiocracy.characters.toList(),
         FakerEnum.KING_OF_THE_HILL to KingOfTheHill.characters.toList(),
         FakerEnum.LORD_OF_THE_RINGS to LordOfTheRings.characters.toList(),
         FakerEnum.MONK to Monk.characters.toList(),
         FakerEnum.PARKS_AND_REC to ParksAndRec.characters.toList(),
+        FakerEnum.POKEMON to Pokemon.characters.toList(),
         FakerEnum.RICK_AND_MORTY to RickAndMorty.characters.toList(),
         FakerEnum.SILICON_VALLEY to SiliconValley.characters.toList(),
+        FakerEnum.STAR_WARS to StarWars.characters.toList(),
         FakerEnum.TECH to Tech.people.toList(),
         FakerEnum.THE_HOBBIT to TheHobbit.characters.toList(),
         FakerEnum.THE_OFFICE to TheOffice.characters.toList(),
@@ -60,25 +68,46 @@ object NameGenerator {
     )
 
     private val companyNameFakers = setOf(
+        FakerEnum.BACK_TO_THE_FUTURE,
+        FakerEnum.BREAKING_BAD,
+        FakerEnum.CALL_OF_DUTY,
+        FakerEnum.DOCTOR_WHO,
+        FakerEnum.GAME_OF_THRONES,
         FakerEnum.GRAVITY_FALLS,
         FakerEnum.HARRY_POTTER,
+        FakerEnum.IDIOCRACY,
         FakerEnum.KING_OF_THE_HILL,
+        FakerEnum.LORD_OF_THE_RINGS,
         FakerEnum.MONK,
         FakerEnum.PARKS_AND_REC,
+        FakerEnum.POKEMON,
+        FakerEnum.RICK_AND_MORTY,
         FakerEnum.SILICON_VALLEY,
+        FakerEnum.STAR_WARS,
         FakerEnum.TECH,
         FakerEnum.THE_OFFICE
     )
 
     private val staticCompanyLists = mapOf(
+        FakerEnum.BACK_TO_THE_FUTURE to BackToTheFuture.companies.toList(),
+        FakerEnum.BREAKING_BAD to BreakingBad.companies.toList(),
+        FakerEnum.CALL_OF_DUTY to CallOfDuty.factions.toList(),
+        FakerEnum.DOCTOR_WHO to DoctorWho.companies.toList(),
+        FakerEnum.GAME_OF_THRONES to GameOfThrones.houses.toList(),
         FakerEnum.GRAVITY_FALLS to GravityFalls.companies.toList(),
         FakerEnum.HARRY_POTTER to HarryPotter.companies.toList(),
+        FakerEnum.IDIOCRACY to Idiocracy.companies.toList(),
         FakerEnum.KING_OF_THE_HILL to KingOfTheHill.companies.toList(),
+        FakerEnum.LORD_OF_THE_RINGS to LordOfTheRings.companies.toList(),
         FakerEnum.MONK to Monk.companies.toList(),
         FakerEnum.PARKS_AND_REC to ParksAndRec.companies.toList(),
+        FakerEnum.POKEMON to Pokemon.characters.toList(),
+        FakerEnum.RICK_AND_MORTY to RickAndMorty.companies.toList(),
         FakerEnum.SILICON_VALLEY to SiliconValley.companies.toList(),
+        FakerEnum.STAR_WARS to StarWars.companies.toList(),
         FakerEnum.TECH to Tech.companies.toList(),
-        FakerEnum.THE_OFFICE to TheOffice.companies.toList()
+        FakerEnum.THE_HOBBIT to TheHobbit.companies.toList(),
+        FakerEnum.THE_OFFICE to TheOffice.companies.toList(),
     )
 
     // Pre-computed name components
@@ -149,7 +178,7 @@ object NameGenerator {
                 companyNameFakers
             } else {
                 val validFakers = companyNameFakers.intersect(fakers.toSet())
-                if (validFakers.isEmpty()) companyNameFakers else validFakers
+                validFakers.ifEmpty { companyNameFakers }
             }
 
             companyFakersCache = fakers to result

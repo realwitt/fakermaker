@@ -205,7 +205,7 @@ object HarryPotter {
         "The Three Broomsticks",
         "Honeydukes",
         "Zonko's Joke Shop",
-        "The Hog's Head",
+        "The Hog's Head Inn",
         "Dervish and Banges",
         "Gladrags Wizardwear",
         "Scrivenshaft's Quill Shop",
@@ -249,7 +249,6 @@ object HarryPotter {
         "Healers' Association",
         // Muggle Companies Mentioned
         "Grunnings",
-        "Rail Track",
         "British Railways",
         // Professional Organizations
         "Wizengamot",

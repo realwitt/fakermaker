@@ -91,89 +91,66 @@ object LordOfTheRings {
         "Bill the Pony",
     )
 
-    val locations = listOf(
-        // Major Regions
-        "Middle-earth",
-        "Eriador",
-        "Rhovanion",
+    val companies = listOf(
+        // Inns and Taverns
+        "The Prancing Pony",
+        "The Green Dragon",
+        "The Golden Perch",
+        "The Ivy Bush",
+
+        // Shops and Services
+        "Mathom-house",
+        "Brandybuck Ferry",
+
+        // Major Realms and Kingdoms
         "Gondor",
         "Rohan",
-        "Mordor",
         "Arnor",
-        "Harad",
-        "Rhûn",
-        "Forodwaith",
-        "Ered Luin",
-        "Beleriand",
-        // Kingdoms/Realms
-        "The Shire",
-        "Rivendell",
-        "Lothlórien",
-        "Mirkwood",
+        "Dale",
+        "Woodland Realm",
         "Erebor",
         "Khazad-dûm",
-        "Angmar",
-        "Númenor",
-        "Valinor",
-        "Undying Lands",
-        // Cities/Strongholds
+
+        // Major Cities and Strongholds
         "Minas Tirith",
-        "Minas Morgul",
         "Osgiliath",
         "Edoras",
         "Helm's Deep",
         "Isengard",
         "Barad-dûr",
-        "Dale",
-        "Lake-town",
-        "Hobbiton",
-        "Bree",
-        "Cair Andros",
+        "Minas Morgul",
         "Dol Amroth",
-        // Mountains
-        "Misty Mountains",
-        "White Mountains",
-        "Grey Mountains",
+        "Pelargir",
+        "City of Lake-town",
+
+        // Elven Realms
+        "Rivendell",
+        "Lothlórien",
+        "Grey Havens",
+
+        // Major Regions
+        "Ithilien",
+        "Belfalas",
+        "Lossarnach",
+        "Lebennin",
         "Iron Hills",
-        "Mount Doom",
-        "Caradhras",
-        "Weathertop",
-        "Mindolluin",
-        "Erebor",
-        "Mount Gram",
-        // Forests
+        "East-mark",
+        "West-mark",
         "Fangorn Forest",
-        "Old Forest",
-        "Trollshaws",
-        "Druadan Forest",
-        "Firien Wood",
-        "Chetwood",
-        "Bindbole Wood",
-        // Rivers
-        "Anduin",
-        "Brandywine",
-        "Entwash",
-        "Greyflood",
-        "Isen",
-        "Silverlode",
-        "Withywindle",
-        "Morgulduin",
-        // Notable Locations
-        "Bag End",
-        "Brandy Hall",
-        "Prancing Pony",
-        "Golden Hall",
-        "Black Gate",
-        "Dead Marshes",
-        "Emyn Muil",
-        "Fords of Isen",
-        "Gap of Rohan",
-        "Gladden Fields",
-        "Paths of the Dead",
-        "Pelennor Fields",
-        "Sammath Naur",
-        "Tower Hills",
+        "Mirkwood",
+
+        // Shire Regions
+        "Michel Delving",
+        "Hobbiton",
+        "Buckland",
+        "Tuckborough",
+
+        // Other Notable Places
+        "City of Bree",
         "Weathertop",
-        "Crack of Doom"
+        "Dunharrow",
+        "Cirith Ungol",
+        "Morannon",
+        "Mount Doom"
     )
 }
