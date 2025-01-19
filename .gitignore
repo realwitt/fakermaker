@@ -91,3 +91,4 @@ application-*.properties
 
 # Avoid ignore Gradle wrappper properties
 !gradle-wrapper.properties
+/fakermaker.tar

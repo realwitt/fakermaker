@@ -105,37 +105,37 @@ object AmericaGenerator {
         }
     }
 
-    private fun findCityWithAreaCode(state: StatesEnum): Triple<StatesEnum, String, String>? {
-        // Use the pre-computed citiesWithAreaCodes map
-        return citiesWithAreaCodes[state]?.randomOrNull()?.let { (city, locationData) ->
-            Triple(state, city, locationData.areaCodes.random())
-        }
-    }
-
-    private fun generateRandomStateCityAreaCode(): Triple<StatesEnum, String, String> {
-        // Start with states we know have area codes, filtered by validStates
-        val statesWithAreaCodes = citiesWithAreaCodes.keys.filter { it in statesWithAreaCodes }
-        if (statesWithAreaCodes.isEmpty()) {
-            throw IllegalStateException("No valid states found with area codes")
+    private fun findOrGenerateAreaCode(state: StatesEnum, city: String? = null): Triple<StatesEnum, String, String> {
+        // If the state has no area codes, immediately pick a random state that does
+        if (state !in statesWithAreaCodes) {
+            val randomStateWithAreaCode = statesWithAreaCodes.random()
+            val (randomCity, locationData) = citiesWithAreaCodes[randomStateWithAreaCode]!!.random()
+            return Triple(randomStateWithAreaCode, randomCity, locationData.areaCodes.random())
         }
 
-        val state = statesWithAreaCodes.random()
-        val (city, locationData) = citiesWithAreaCodes[state]?.random()
-            ?: throw IllegalStateException("No cities found with area codes for state $state")
+        // Try with the provided city if we have one
+        if (city != null) {
+            americaData[state]?.get(city)?.areaCodes?.randomOrNull()?.let {
+                return Triple(state, city, it)
+            }
+        }
 
-        return Triple(state, city, locationData.areaCodes.random())
+        // Try to find any city with an area code in this state
+        citiesWithAreaCodes[state]?.randomOrNull()?.let { (cityWithCode, locationData) ->
+            return Triple(state, cityWithCode, locationData.areaCodes.random())
+        }
+
+        // This should never happen since we checked statesWithAreaCodes first
+        throw IllegalStateException("Failed to find area code for state $state which should have area codes")
     }
 
     private fun generateRandomStateCityZip(): Triple<StatesEnum, String, String> {
-        val state = stateCityZipCache.keys.random()
+        val state = citiesWithAreaCodes.keys.random()
 
-        // Get random city data for that state
         val (city, zipCodes, _) = stateCityZipCache[state]?.randomOrNull() ?:
         throw IllegalStateException("No cities found for state $state")
 
-        // Get random zip code for that city
         val zip = zipCodes.randomOrNull() ?:
-        // we should never this, every city in the postal data has a zip
         throw IllegalStateException("No zip codes found for city $city in state $state")
 
         return Triple(state, city, zip)
@@ -231,54 +231,40 @@ object AmericaGenerator {
     }
 
     fun phone(existingItems: List<DataTableItem>?, nickname: String): DataTableItem {
-        val (state, city, areaCode) = if (existingItems.isNullOrEmpty()) {
-            generateRandomStateCityAreaCode()
-        } else {
-            // Try to find city first (which will have state)
-            existingItems.find { it.maker == MakerEnum.CITY }
-                ?.let { cityDataTableItem ->
-                    val state = cityDataTableItem.influencedBy
-                        ?.find { it is Influencer.State }
-                        ?.let { influencer ->
-                            when (influencer) {
-                                is Influencer.State -> influencer.state
-                                else -> null
-                            }
-                        }
-                    val city = cityDataTableItem.influencedBy
-                        ?.find { it is Influencer.City }
-                        ?.let { influencer ->
-                            when (influencer) {
-                                is Influencer.City -> influencer.city
-                                else -> null
-                            }
-                        }
-                    if (state != null && city != null) {
-                        // Try to get area code for the current city
-                        americaData[state]?.get(city)?.areaCodes?.randomOrNull()?.let {
-                            Triple(state, city, it)
-                        }
-                        // If no area code, try another city in the same state
-                            ?: findCityWithAreaCode(state)
-                            // If no cities in state have area codes, get a random valid state with area codes
-                            ?: generateRandomStateCityAreaCode()
-                    } else null
-                }
-            // If no city found, try to find state
-                ?: existingItems.find { it.maker == MakerEnum.STATE }
-                    ?.influencedBy
-                    ?.find { it is Influencer.State }
-                    ?.let { influenceType ->
-                        when (influenceType) {
-                            is Influencer.State -> {
-                                val state = influenceType.state
-                                findCityWithAreaCode(state) ?: generateRandomStateCityAreaCode()
-                            }
-                            else -> null
-                        }
-                    }
-                // No city or state found, generate everything randomly
-                ?: generateRandomStateCityAreaCode()
+        // Get state and city from existing items if available
+        val cityItem = existingItems?.find { it.maker == MakerEnum.CITY }
+        val stateFromCity = cityItem?.influencedBy
+            ?.filterIsInstance<Influencer.State>()
+            ?.firstOrNull()
+            ?.state
+        val cityName = cityItem?.influencedBy
+            ?.filterIsInstance<Influencer.City>()
+            ?.firstOrNull()
+            ?.city
+
+        // If no city, try to get just the state
+        val stateItem = if (stateFromCity == null) {
+            existingItems?.find { it.maker == MakerEnum.STATE }
+        } else null
+        val stateFromState = stateItem?.influencedBy
+            ?.filterIsInstance<Influencer.State>()
+            ?.firstOrNull()
+            ?.state
+
+        // Generate area code based on what we have
+        val (state, city, areaCode) = when {
+            // If we have both state and city
+            stateFromCity != null && cityName != null ->
+                findOrGenerateAreaCode(stateFromCity, cityName)
+            // If we just have state
+            stateFromCity != null || stateFromState != null ->
+                findOrGenerateAreaCode(stateFromCity ?: stateFromState!!)
+            // If we have nothing
+            else -> {
+                val randomState = statesWithAreaCodes.random()
+                val (randomCity, locationData) = citiesWithAreaCodes[randomState]!!.random()
+                Triple(randomState, randomCity, locationData.areaCodes.random())
+            }
         }
 
         val prefix = Random.nextInt(100, 999)
@@ -299,11 +285,11 @@ object AmericaGenerator {
         val formattedPhone = phoneFormats.random().format(areaCode, prefix, lineNumber)
 
         return DataTableItem(
-            maker         = MakerEnum.PHONE,
-            fakersUsed    = null,
+            maker = MakerEnum.PHONE,
+            fakersUsed = null,
             originalValue = areaCode,
-            derivedValue  = formattedPhone,
-            wikiUrl       = WikiUtil.createPhoneWikiLink(areaCode),
+            derivedValue = formattedPhone,
+            wikiUrl = WikiUtil.createPhoneWikiLink(areaCode),
             influencedBy = listOfNotNull(
                 Influencer.State(state),
                 Influencer.City(city),
