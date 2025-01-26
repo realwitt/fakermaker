@@ -176,8 +176,7 @@ object BreakingBad {
         // Retail/Service Businesses
         "JP Wynne High School",
         "Crossroads Motel",
-        "Nail Salon (where Saul's office was originally)",
-        "Octopus Car Wash (original name of A1A)",
+        "Octopus Car Wash",
         "Save-Rite Drugs",
         "Tampico Furniture",
         "Danny's Auto Service",
@@ -187,7 +186,6 @@ object BreakingBad {
         "Bogdan's Car Wash",
         "Clovis's Auto Repair",
         "Jesse's RV Rental",
-        "Walt Jr's Website (SaveWalterWhite.com)",
         // Restaurants/Food
         "Taco Sal",
         "Garduno's Restaurant",
@@ -208,7 +206,7 @@ object BreakingBad {
         "Mesa Credit Union",
         "First National Bank",
         // Legal/Professional Services
-        "HHM Law Firm (mentioned)",
+        "HHM Law Firm",
         "Ehrmantraut Security Services",
         "White & Associates",
         // Shipping/Transportation

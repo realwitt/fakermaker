@@ -5,6 +5,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class FakerEnum(val prettyName: String) {
+    // there may be a better way to do this...
+    // I wanted the pretty name for internal use for debugging and as the serialization value
+
     @SerialName("Back to the Future")
     BACK_TO_THE_FUTURE("Back to the Future"),
 
@@ -47,8 +50,8 @@ enum class FakerEnum(val prettyName: String) {
     @SerialName("Parks and Recreation")
     PARKS_AND_REC("Parks and Recreation"),
 
-    @SerialName("Pokemon")
-    POKEMON("Pokemon"),
+    @SerialName("Pokémon")
+    POKEMON("Pokémon"),
 
     @SerialName("Rick and Morty")
     RICK_AND_MORTY("Rick and Morty"),

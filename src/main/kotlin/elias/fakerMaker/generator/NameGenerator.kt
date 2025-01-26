@@ -260,7 +260,7 @@ object NameGenerator {
         val firstNameItem = existingItems?.find { it.maker == MakerEnum.NAME_FIRST }
         val lastNameItem = existingItems?.find { it.maker == MakerEnum.NAME_LAST }
 
-        // If both names exist and are from the same faker, try to use that faker first
+        // If both names exist and are from the same original value, prioritize that faker
         if (firstNameItem != null && lastNameItem != null) {
             val firstNameFaker = firstNameItem.fakersUsed?.firstOrNull()
             val lastNameFaker = lastNameItem.fakersUsed?.firstOrNull()

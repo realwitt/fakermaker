@@ -18,7 +18,12 @@ import reactor.core.publisher.Flux
 
 @RestController
 @RequestMapping("/api/fakermaker")
-@CrossOrigin(origins = ["http://localhost:4321"])
+@CrossOrigin(
+    origins = ["https://fakermaker.fm", "http://localhost:4321"],
+    methods = [RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS],
+    allowedHeaders = ["Content-Type"],
+    maxAge = 86400
+)
 class DataController(
     private val switchBoardService: SwitchBoardService
 ) {
