@@ -12,6 +12,7 @@ import elias.fakerMaker.fakers.sports.Baseball
 import elias.fakerMaker.fakers.sports.Basketball
 import elias.fakerMaker.fakers.tvshows.*
 import elias.fakerMaker.fakers.videogames.CallOfDuty
+import elias.fakerMaker.fakers.videogames.SmashBros
 import kotlin.random.Random
 
 object NameGenerator {
@@ -34,6 +35,7 @@ object NameGenerator {
         FakerEnum.POKEMON,
         FakerEnum.RICK_AND_MORTY,
         FakerEnum.SILICON_VALLEY,
+        FakerEnum.SMASH_BROS,
         FakerEnum.STAR_WARS,
         FakerEnum.TECH,
         FakerEnum.THE_HOBBIT,
@@ -60,6 +62,7 @@ object NameGenerator {
         FakerEnum.POKEMON to Pokemon.characters.toList(),
         FakerEnum.RICK_AND_MORTY to RickAndMorty.characters.toList(),
         FakerEnum.SILICON_VALLEY to SiliconValley.characters.toList(),
+        FakerEnum.SMASH_BROS to SmashBros.characters.toList(),
         FakerEnum.STAR_WARS to StarWars.characters.toList(),
         FakerEnum.TECH to Tech.people.toList(),
         FakerEnum.THE_HOBBIT to TheHobbit.characters.toList(),

@@ -59,6 +59,9 @@ enum class FakerEnum(val prettyName: String) {
     @SerialName("Silicon Valley")
     SILICON_VALLEY("Silicon Valley"),
 
+    @SerialName("Smash Bros")
+    SMASH_BROS("Smash Bros"),
+
     @SerialName("Star Wars")
     STAR_WARS("Star Wars"),
 
