@@ -11,9 +11,9 @@ A blazingly fast fake data generator inspired by Java Faker, but supercharged wi
 Generate data using characters and locations from your favorite universes - including Pokemon trainers, Breaking Bad characters, Lord of the Rings locations, or Game of Thrones houses. Mix and match data from dozens of popular TV shows, movies, books, and video games to create the perfect test dataset.
 
 ---
-> ### 🌟 Coming Soon: Web Interface
+> ### 🌟 Web Interface
 > A sleek, modern web app to generate and visualize your fake data with just a few clicks.
-> Stay tuned for point-and-click fake data generation.
+> Visit [fakermaker.fm](https://fakermaker.fm) to interact with a web client that uses this server.
 ---
 
 ## ⚡️ Setup TL;DR
@@ -24,7 +24,6 @@ curl -s "https://get.sdkman.io" | bash && source "$HOME/.sdkman/bin/sdkman-init.
 sdk install java 21-graal && sdk use java 21-graal && \
 sdk install kotlin 2.0.20 && sdk use kotlin 2.0.20 && \
 git clone https://github.com/yourusername/faker-maker.git && cd faker-maker && \
-docker-compose up -d && \
 ./gradlew build && ./gradlew bootRun
 ```
 
@@ -40,7 +39,6 @@ curl -X POST "http://localhost:8181/api/fakermaker/download/1000000" -o massive_
 
 - Java 21
 - Kotlin 2.0.20
-- Docker and Docker Compose
 - Gradle
 
 ## Detailed Installation
@@ -69,12 +67,7 @@ git clone https://github.com/yourusername/faker-maker.git
 cd faker-maker
 ```
 
-2. Start PostgreSQL:
-```bash
-docker-compose up -d
-```
-
-3. Build and run:
+2. Build and run:
 ```bash
 ./gradlew build
 ./gradlew bootRun
@@ -130,4 +123,4 @@ Use the included `.idea/httpRequests/faker-maker.http` file for easy API testing
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ---
-Made with ☕️ and Kotlin
+Made with Kotlin
