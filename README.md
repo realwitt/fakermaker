@@ -12,8 +12,7 @@ Generate data using characters and locations from your favorite universes - incl
 
 ---
 > ### 🌟 Web Interface
-> A sleek, modern web app to generate and visualize your fake data with just a few clicks.
-> Visit [fakermaker.fm](https://fakermaker.fm) to interact with a web client that uses this server.
+> Visit [fakermaker.fm](https://fakermaker.fm) to interact with a web client that uses this server, or clone [the frontend repo](https://github.com/realwitt/fakermaker-frontend) and run it locally
 ---
 
 ## ⚡️ Setup TL;DR
